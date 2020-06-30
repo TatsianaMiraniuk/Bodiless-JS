@@ -25,14 +25,14 @@ const LocalContextMenu: FC = ({ children }) => {
   const context = useEditContext();
   // let the context know it has a localMenu
   context.hasLocalMenu = true;
-  const { contextMenuOptions, isInnermostLocalMenu } = context;
+  const { contextMenuOptions, isInnermostLocalMenu, areLocalTooltipsDisabled } = context;
   const options = contextMenuOptions.filter((option: TMenuOption) => Boolean(option.local));
   // Purpose of this event handler to control a case when the tooltip shows on a component
   // that became invisible for any reason and the tooltip positioned to the top-left corner
   // of the screen.
   const onPopupAlign = (domNode: Element) => {
     const element = domNode as HTMLElement;
-    if (element.getBoundingClientRect().left < 0) {
+    if (element.getBoundingClientRect().left <= 0) {
       element.style.visibility = 'hidden';
     } else {
       element.style.visibility = 'visible';
@@ -40,11 +40,11 @@ const LocalContextMenu: FC = ({ children }) => {
   };
   return (
     <Tooltip
-      visible={isInnermostLocalMenu && options.length > 0}
+      visible={isInnermostLocalMenu && options.length > 0 && !areLocalTooltipsDisabled}
       overlay={<Menu options={options} />}
       trigger={[]}
       destroyTooltipOnHide
-      placement="bottom"
+      placement="bottomLeft"
       onPopupAlign={onPopupAlign}
     >
       {children}

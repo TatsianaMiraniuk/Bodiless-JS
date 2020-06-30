@@ -17,6 +17,7 @@ import {
   Form, FormApi, FormState, Text,
 } from 'informed';
 import { UI } from './Types/ContextMenuTypes';
+import ReactTagsField from './components/ReactTagsField';
 
 const defaultUI = {
   Icon: 'i',
@@ -24,10 +25,15 @@ const defaultUI = {
   ComponentFormLabel: 'label',
   ComponentFormButton: 'button',
   ComponentFormCloseButton: 'button',
+  ComponentFormSubmitButton: 'button',
   ComponentFormUnwrapButton: 'button',
   ComponentFormText: Text,
   ComponentFormError: 'div',
   Form: 'div',
+  ReactTags: ReactTagsField,
+  ComponentFormList: 'ul',
+  ComponentFormListItem: 'li',
+  ComponentFormDescription: 'div',
 };
 
 export const getUI = (ui: UI = {}) => ({ ...defaultUI, ...ui });
@@ -35,6 +41,7 @@ export const getUI = (ui: UI = {}) => ({ ...defaultUI, ...ui });
 export type FormProps = {
   closeForm: () => void;
   ui?: UI;
+  'aria-label'?: string;
 };
 
 export type FormBodyProps<D> = FormProps & {
@@ -45,7 +52,7 @@ export type FormBodyProps<D> = FormProps & {
 export type FormBodyRenderer<D> = (props: FormBodyProps<D>) => ReactNode;
 
 export type Options<D> = {
-  submitValues?: (componentData: D) => void;
+  submitValues?: (componentData: D) => boolean|void;
   initialValues?: D;
   hasSubmit?: Boolean;
 };
@@ -53,40 +60,37 @@ export type Options<D> = {
 const contextMenuForm = <D extends object>(options: Options<D>) => (
   renderFormBody: FormBodyRenderer<D>,
 ) => {
-  const ContextMenuForm = ({ closeForm, ui }: FormProps) => {
-    const { ComponentFormButton, Icon } = getUI(ui);
+  const ContextMenuForm = ({ closeForm, ui, ...rest }: FormProps) => {
+    const { ComponentFormCloseButton, ComponentFormSubmitButton } = getUI(ui);
     const { submitValues, initialValues, hasSubmit = true } = options;
     return (
       <Form
         onSubmit={(values: D) => {
-          if (submitValues) submitValues(values);
-          closeForm();
+          if (!submitValues || !submitValues(values)) {
+            closeForm();
+          }
         }}
         initialValues={initialValues}
+        {...rest}
       >
         {({ formApi, formState }) => (
           <>
-            <ComponentFormButton
+            <ComponentFormCloseButton
               type="button"
               onClick={closeForm}
-              className="bl-float-right"
-            >
-              <Icon>cancel</Icon>
-            </ComponentFormButton>
+              aria-label="Cancel"
+            />
             {renderFormBody({
               closeForm,
               formApi,
               formState,
               ui,
             })}
-            {hasSubmit && !formState.invalid
-            && (
-              <div className="bl-clearfix">
-                <ComponentFormButton type="submit" className="bl-float-right">
-                  <Icon>done</Icon>
-                </ComponentFormButton>
-              </div>
-            )
+            {
+              hasSubmit && !formState.invalid
+              && (
+                <ComponentFormSubmitButton aria-label="Submit" />
+              )
             }
           </>
         )}

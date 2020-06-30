@@ -13,12 +13,13 @@
  */
 
 /* eslint-disable no-alert */
-import React, { ComponentType } from 'react';
+import React, { ComponentType, useCallback } from 'react';
 import {
   contextMenuForm,
   getUI,
   withMenuOptions,
   TMenuOption,
+  useEditContext,
 } from '@bodiless/core';
 import { AxiosPromise } from 'axios';
 import BackendClient from './BackendClient';
@@ -34,22 +35,39 @@ type Props = {
   client?: Client;
 };
 
-const formPageAdd = (client: Client, template: string) => contextMenuForm({
-  submitValues: async (submittedValues: any) => {
-    const pathname = window.location.pathname
-      ? window.location.pathname.replace(/\/?$/, '/')
-      : '';
-    const newPagePath = pathname + submittedValues.path;
-    const result = await handle(client.savePage(newPagePath, template));
-    if (result) {
-      const isPageVerified = await verifyPage(newPagePath);
-      if (!isPageVerified) {
-        alert(`unable to verify page creation.
+const formPageAdd = (client: Client, template: string, context: any) => contextMenuForm({
+  submitValues: (submittedValues: any) => {
+    (async () => {
+      context.showPageOverlay({
+        message: 'The page is creating.',
+        maxTimeoutInSeconds: 10,
+      });
+      const pathname = window.location.pathname
+        ? window.location.pathname.replace(/\/?$/, '/')
+        : '';
+      const newPagePath = pathname + submittedValues.path;
+      const result = await handle(client.savePage(newPagePath, template));
+      if (result.response) {
+        const isPageVerified = await verifyPage(newPagePath);
+        if (!isPageVerified) {
+          const errorMessage = `Unable to verify page creation.
 It is likely that your new page was created but is not yet available.
-Click ok to visit the new page; if it does not load, wait a while and reload.`);
+Click ok to visit the new page; if it does not load, wait a while and reload.`;
+          context.showError({
+            message: errorMessage,
+            onClose: () => {
+              window.location.href = newPagePath;
+            },
+          });
+        } else {
+          window.location.href = newPagePath;
+        }
+      } else {
+        context.showError({
+          message: result.message,
+        });
       }
-      window.location.href = newPagePath;
-    }
+    })();
   },
 })(({ ui, formState }: any) => {
   const {
@@ -60,9 +78,9 @@ Click ok to visit the new page; if it does not load, wait a while and reload.`);
   } = getUI(
     ui,
   );
-  const validate = (value: string) => (!value || !RegExp(/^[a-z0-9_-]+$/i).test(value)
+  const validate = useCallback((value: string) => (!value || !RegExp(/^[a-z0-9_-]+$/i).test(value)
     ? 'No special characters or spaces allowed'
-    : undefined);
+    : undefined), []);
 
   // ensure trailing slash is present
   const currentPage = window.location.href.replace(/\/?$/, '/');
@@ -71,7 +89,7 @@ Click ok to visit the new page; if it does not load, wait a while and reload.`);
     <>
       <ComponentFormTitle>Add a New Page</ComponentFormTitle>
       <ComponentFormLabel htmlFor="new-page-path">
-          URL
+        URL
         <br />
         {`${currentPage}...`}
       </ComponentFormLabel>
@@ -92,13 +110,16 @@ Click ok to visit the new page; if it does not load, wait a while and reload.`);
 const defaultClient = new BackendClient();
 
 const useGetMenuOptions = (): () => TMenuOption[] => {
+  const context = useEditContext();
   const gatsbyPage = useGatsbyPageContext();
+
   return () => [
     {
       name: 'newpage',
       icon: 'note_add',
       label: 'Page',
-      handler: () => formPageAdd(defaultClient, gatsbyPage.subPageTemplate),
+      isHidden: () => !context.isEdit,
+      handler: () => formPageAdd(defaultClient, gatsbyPage.subPageTemplate, context),
     },
   ];
 };

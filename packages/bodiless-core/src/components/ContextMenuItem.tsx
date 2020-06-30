@@ -44,11 +44,11 @@ const ContextMenuItem = ({ option, index, ui }: IProps) => {
   } = getUI(ui);
   const isActive = option.isActive ? option.isActive() : false;
   const isDisabled = option.isDisabled ? option.isDisabled() : false;
+  const isHidden = option.isHidden ? option.isHidden() : false;
   const isFirst = index === 0;
 
   const onToolbarButtonClick = (event: React.MouseEvent<HTMLDivElement>): void => {
     const menuForm = option.handler ? option.handler(event) : undefined;
-
     if (menuForm) {
       setIsToolTipShown(!isToolTipShown);
       // We have to pass a function to setForm b/c menuForm is itself a function
@@ -69,15 +69,19 @@ const ContextMenuItem = ({ option, index, ui }: IProps) => {
     if (Form) {
       return (
         <FormWrapper onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
-          <Form closeForm={onFormClose} ui={ui} />
+          <Form closeForm={onFormClose} ui={ui} aria-label={`Context Menu ${option.label || option.name} Form`} />
         </FormWrapper>
       );
     }
-    return <React.Fragment />;
+    return <></>;
   }
 
   if (option.name.startsWith('__divider')) {
     return <ToolbarDivider />;
+  }
+
+  if (isHidden) {
+    return null;
   }
 
   return (
@@ -86,6 +90,7 @@ const ContextMenuItem = ({ option, index, ui }: IProps) => {
       isDisabled={isDisabled}
       isFirst={isFirst}
       onClick={onToolbarButtonClick}
+      aria-label={option.label || option.name}
     >
       <Tooltip
         trigger={['click']}
@@ -94,11 +99,12 @@ const ContextMenuItem = ({ option, index, ui }: IProps) => {
       >
         <Icon isActive={isActive || isToolTipShown}>{option.icon}</Icon>
       </Tooltip>
-      {(option.label) ? (
-        <div className="bl-text-center bl-text-white">
-          {option.label}
-        </div>
-      ) : (null)
+      {
+        (option.label) ? (
+          <div className="bl-text-center bl-text-white">
+            {option.label}
+          </div>
+        ) : (null)
       }
     </ToolbarButton>
   );

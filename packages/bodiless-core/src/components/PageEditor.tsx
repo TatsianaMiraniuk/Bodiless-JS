@@ -28,6 +28,7 @@ import { TMenuOption } from '../PageEditContext/types';
 type CompleteUI = {
   GlobalContextMenu: React.ComponentType<ContextMenuProps>;
   LocalContextMenu: React.ComponentType<ContextMenuProps>;
+  PageOverlay?: FC;
 };
 export type UI = Partial<CompleteUI>;
 
@@ -45,11 +46,11 @@ export const useUI = () => useContext(uiContext);
 const GlobalContextMenu: FC<Props> = observer(() => {
   const { GlobalContextMenu: Menu } = useUI();
   const context = useEditContext();
-  const { contextMenuOptions } = context;
+  const { contextMenuOptions, isPositionToggled } = context;
   const options = contextMenuOptions.filter(
     (op: TMenuOption) => op.global !== false,
   );
-  return <Menu options={options} />;
+  return <Menu options={options} isPositionToggled={isPositionToggled} />;
 });
 
 const PageEditor: FC<Props> = ({ children, ui }) => {
@@ -88,11 +89,14 @@ const PageEditor: FC<Props> = ({ children, ui }) => {
     ...ui,
   };
 
+  const { PageOverlay = () => null } = newUI;
+
   return (
     <uiContext.Provider value={newUI}>
       <PageContextProvider name="page" getMenuOptions={getMenuOptions}>
         {children}
         <GlobalContextMenu />
+        <PageOverlay />
       </PageContextProvider>
     </uiContext.Provider>
   );

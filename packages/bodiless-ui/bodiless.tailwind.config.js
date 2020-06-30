@@ -197,6 +197,8 @@ module.exports = {
 
         red: '#e3342f',
         green: '#309795',
+
+        'black-transparent': '#00000066',
       },
 
       /*
@@ -482,7 +484,9 @@ module.exports = {
       |
       */
 
-      // maxHeight: { },
+      maxHeight: {
+        ...xlGrid,
+      },
 
       /*
       |---------------------------------------------------------------------------
@@ -551,7 +555,9 @@ module.exports = {
       |
       */
 
-      // zIndex: { },
+      zIndex: {
+        max: '99999',
+      },
 
       /*
       |---------------------------------------------------------------------------
@@ -621,9 +627,9 @@ module.exports = {
   |
   */
 
-  // variants: {
-
-  // },
+  variants: {
+    borderWidth: ['first', 'responsive'],
+  },
 
   // corePlugins: {},
 

@@ -33,40 +33,38 @@ The tool is given URL that will crawl the existing site finding all pages, gener
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/en/) version >= 10
-
-- [npm](https://www.npmjs.com/)
+- [NPM](https://docs.npmjs.com/) version 6.13.1+ is required.
 
 ### Installation & Run
 
-1. Clone this repository: https://github.com/johnsonandjohnson/bodiless-js.git
+1. Clone this repository: https://github.com/johnsonandjohnson/Bodiless-JS.git
 
-1. Execute the command to install the necessary packages
+    ```sh
+    git clone https://github.com/johnsonandjohnson/Bodiless-JS.git
+    cd Bodiless-JS
+    ```
 
-```sh
+1. Let's create a site to migrate the files to.
 
-npm run setup
+    The full directions can be found [here](/About/GettingStarted?id=creating-a-new-site)
+    We recommend this path is outside the repository root.  In the code example, we used `../NEW_MIGRATED_SITE`.
 
-```
+    ```sh
+    npm ci
+    npm run new ../NEW_MIGRATED_SITE
+    cd ../NEW_MIGRATED_SITE
 
-or
-
-```sh
-
-npm run fresh
-
-```
-
-to include cleaning step before the setup.
+    ```
 
 1. Prepare the migration-settings.json. All settings can be found in Configuration section
 
 1. Execute the command to flatten the site
 
-```sh
+    ```sh
 
-npm run migrate
+    npm run migrate
 
-```
+    ```
 
 
 ### Configuration
@@ -86,6 +84,24 @@ Options:
   - **Examples:**: "http://pariet10.ru/" or "https://pariet10.ru/"
 
   - **Restrictions:**: None
+
+- `isPage404Disabled`
+
+  - **Description**: When this option is `false` (by default), all non-existing pages will not be scraped
+  and will redirect to the default 404 page instead.
+
+  - **Accepted Formats:**: `true`, `false`
+
+- `page404Url`
+
+  - **Description**: A specific url from where the default "page not found" page should be flattened.
+  When this option is not specified - a default /404 page will be used.
+
+  - **Accepted Formats:**: Absolute url to the page.
+
+  - **Examples:**: "https://pariet10.ru/404-custom-page"
+
+  - **Restrictions:**: `isPage404Disabled` option should be set to false.
 
 - `steps`
 
@@ -153,6 +169,40 @@ Options:
 
   - **Recommendation:**: "true"
 
+- `export`
+
+  - **Description**: Setup the parameters for exporting site information.
+
+    - `redirects`
+
+      - **Description**: Migration site path redirect configure.
+
+        - `path`
+
+          - **Description**: File path for redirect rule export.
+
+          - **Accepted Formats:**: string
+
+        - `format`
+
+          - **Description**: Format of redirect rule, currently supports 'yaml' format only.
+
+          - **Accepted Formats:**: string
+
+        - **Examples:**
+        ```json
+          {
+            ...
+
+            "exports": {
+              "redirects": {
+                "path": "/path/to/myexport.yaml",
+                "format": "yaml"
+              }
+            }
+          }
+        ```
+
   
 
 - `transformers`
@@ -167,33 +217,52 @@ Options:
 
     - **Description**: Replace each element in the set of matched elements with the provided new content and return the set of elements that was removed.
 
-  - `tojsx`
+  - `replaceString`
+
+    - **Description**: Replace string (or regex pattern) in the source html code before parsing.
+
+  - `tocomponent`
 
     - **Description**: Extract matched elements into React components as separate modules
 
-    - **Note**: this option is not implemented yet. If you want to convert html into jsx please follow "Convert html into jsx" section
+- Specific configuration parameters for each rule type:
 
-    - Specific configuration parameters for each rule type:
+  - `selector`
 
-- `selector`
+    - **Description**: Selector for the element(s) that should be processed
 
-  - **Description**: Selector for the element(s) that should be processed
+    - **Accepted Formats:**: string
 
-  - **Accepted Formats:**: string
+  - `replacement`
 
-- `replacement`
+    - **Description**: New html content in `replace` mode. Name of React component in `tojsx` mode
 
-  - **Description**: New html content in `replace` mode. Name of React component in `tojsx` mode
+    - **Accepted Formats:**: string
 
-  - **Accepted Formats:**: string
+    - **Restrictions:**: Escape special characters, such as " with `\"`
 
-  - **Restrictions:**: Escape special characters, such as " with `\"`
+  - `disableTailwind`
 
-- `context`
+    - **Description**: Disables site tailwind theme. The site tailwind theme is disabled by default, set this variable to `false` to enable site tailwind theme. You may want to enable the tailwind theme if the migrated site will add new bodiless JS components. Note that enabling the tailwind theme in some cases may interfere with the migrated site's styling.
 
-  - **Description**: A list of pages in which the rule should be applied.
+    - **Accepted Formats:** `true` or `false`
 
-  - **Accepted Formats:**: Please follow [minimatch](https://github.com/isaacs/minimatch) syntax to compose url pattern
+    - **Default Value:** `true`
+
+  - `allowFallbackHtml`
+
+    - **Description**: Optional setting to push original html body into the page component file and report a message in the output when migration encounters an error from body section of html. If disabled with value `false`, migration skips generation of JSX on page parsing errors.
+
+    - **Accepted Formats**: Boolean (true or false)
+
+    - **Default Value:** `true`
+
+
+  - `context`
+
+    - **Description**: A list of pages in which the rule should be applied.
+
+    - **Accepted Formats:**: Please follow [minimatch](https://github.com/isaacs/minimatch) syntax to compose url pattern
 
 - **Examples:**
 
@@ -215,20 +284,27 @@ Options:
 
 The following process will rehydrate (or replace specific html element components with React named components.)
 
-In the `packages/bodiless-migration-tool/conf/settings.json`
+In the `packages/bodiless-migration-tool/settings.json`
 
-Specify `replace` Rules
+Specify `tocomponent` Rules
 
 1. `selector`
 
-  - **Description:** selector for the element(s) that should be extracted into React components
+  - **Description:** selector for the element(s) that should be extracted into React components.
 
-  1. `component` name of the React component
-    - **Description:** selector for the element(s) that should be extracted into React components
+1. `replacement`
+
+  - **Description:**  name of the React component that should be replaced with.
+
+*Note*: Normally we extract common elements into shareable React component, for
+example, Header and Footer component. If there are dynamic elements inside the
+extracted component, i.e. active menu item with highlighted styles inside
+Header component, we will need to further process the hydrated component to
+make menu working.
 
 ##### Example
 
-View [conf/settings.json](conf/settings.json)
+View [examples/settings/to_components.json](examples/settings/to_components.json)
 
 ### Usage
 
@@ -261,6 +337,38 @@ After performing of `npm run build`:
 ### Full settings.json Examples
 
 Full examples can be found in [examples/settings](examples/settings).
+
+### Configure no-scroll for selected anchor element.
+
+Sites, undergoing flattening, may have foldable accordion elements that are implemented with anchor fragment. By default, GatsbyJS navigation compares the change in url and scrolls the page to the location based on the given url hash.
+
+If this is not the desired behavior for migrated page, a user might override scrolling by configure `no-scroll-settings.json` and place it under `[site]/src/@bodiless/gatsby-theme-bodiless/` folder. Behind the scenes, it shadows Gatsby theme packages/gatsby-theme-bodiless/src/no-scroll-settings.json configuration file.
+
+Here's an example of no-scroll-settings.json usages:
+
+```
+{
+  "parentSelectors": [
+    ".container-classname-1",
+    ".container-classname-2"
+  ],
+  "elementSelectors": [
+    ".container-classname .fieldset .field__item > a"
+  ],
+  "excludeHashes": [
+    "hash-to-be-excluded-from-no-scrolling"
+  ]
+}
+
+```
+
+Explanation of options:,
+- `parentSelectors`: Contains a list of selectors that within the selected container element, clicking anchor will disable the page scrolling.
+
+- `elementSelectors`: Contains a list of anchor selectors that clicking on these anchors will disable the page scrolling.
+
+- `excludeHashes`: Used to define a custom list of hash strings (without "#" character) to be excluded from no-scrolling feature.
+
 
 ### Technical Notes
 

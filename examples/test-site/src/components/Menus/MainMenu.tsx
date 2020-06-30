@@ -1,5 +1,5 @@
 /**
- * Copyright © 2019 Johnson & Johnson
+ * Copyright © 2020 Johnson & Johnson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -11,70 +11,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React from 'react';
+
 import { flow } from 'lodash';
-import {
-  addClasses,
-  addProps,
-  removeClasses,
-  withDesign,
-} from '@bodiless/fclasses';
-import {
-  List,
-} from '@bodiless/components';
+import { List } from '@bodiless/components';
 import {
   asHorizontalMenu,
   asHorizontalSubMenu,
-  asEditableMenu,
-  asEditableSubMenu,
+  asEditableMainMenu,
+  asEditableMainSubMenu,
   withSubmenu,
 } from '@bodiless/organisms';
+import { withEditorSimple } from '../Editors';
+import { asExceptMobile } from '../Elements.token';
 
-const asWhiteColoredLink = flow(
-  removeClasses('bl-text-primary hover:bl-underline'),
-  addClasses('text-white'),
-);
-const withActivePageStyles = addClasses('bg-teal-500');
-const withLinkStyles = withDesign({
-  ActiveLink: flow(asWhiteColoredLink, withActivePageStyles),
-  Link: asWhiteColoredLink,
-});
-const withMenuStyles = addClasses('hover:bg-teal-500 text-white text-left min-w-100 leading-loose text-sm px-2');
-const withTealBackground = addClasses('bg-teal-600');
-const withLimitedHeightStyles = addClasses('overflow-y-hidden max-h-menu-row');
-const withSubmenuStyles = addClasses('-ml-2');
+import { withMenuListStyles, withMenuSublistStyles } from './token';
+
 const MenuSubList = flow(
-  asEditableSubMenu,
+  asEditableMainSubMenu(withEditorSimple),
   asHorizontalSubMenu,
-  withDesign({
-    Title: withLinkStyles,
-    Wrapper: flow(
-      withTealBackground,
-      withMenuStyles,
-    ),
-    Item: flow(
-      withMenuStyles,
-      withTealBackground,
-      withSubmenuStyles,
-    ),
-  }),
+  withMenuSublistStyles,
 )(List);
 
 const MenuList = flow(
-  asEditableMenu,
+  asEditableMainMenu(withEditorSimple),
   asHorizontalMenu,
-  withDesign({
-    Title: withLinkStyles,
-    Wrapper: flow(
-      withTealBackground,
-      addProps({ overflowedIndicator: <span className="text-white">...</span> }),
-      withLimitedHeightStyles,
-    ),
-    Item: flow(
-      withTealBackground,
-      withMenuStyles,
-    ),
-  }),
+  withMenuListStyles,
+  asExceptMobile,
 )(List);
 
 export default withSubmenu(MenuSubList)(MenuList);

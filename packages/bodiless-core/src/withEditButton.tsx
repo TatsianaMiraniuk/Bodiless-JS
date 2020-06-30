@@ -14,17 +14,18 @@
 
 import { ReactNode } from 'react';
 import { flowRight } from 'lodash';
-import { withPageContext, withoutProps, UseGetMenuOptions } from './hoc';
+import { withMenuOptions, withoutProps, UseGetMenuOptions } from './hoc';
 import { PageEditContextInterface } from './PageEditContext/types';
 import contextMenuForm, {
   FormBodyProps as ContextMenuFormBodyProps,
 } from './contextMenuForm';
 import { TMenuOptionGetter } from './Types/PageContextProviderTypes';
 
-export type FormBodyProps<D> = ContextMenuFormBodyProps<D> & {
+export type FormBodyProps<P, D> = ContextMenuFormBodyProps<D> & {
   unwrap?: () => void;
+  componentProps: P;
 };
-export type FormBodyRenderer<D> = (p: FormBodyProps<D>) => ReactNode;
+export type FormBodyRenderer<P, D> = (p: FormBodyProps<P, D>) => ReactNode;
 
 export type EditButtonProps<D> = {
   setComponentData: (componentData: D) => void;
@@ -40,7 +41,7 @@ export type EditButtonOptions<P, D> = {
   label?: string;
   global?: boolean;
   local?: boolean;
-  renderForm: FormBodyRenderer<D>;
+  renderForm: FormBodyRenderer<P, D>;
   // Allow additional buttons.
   useGetMenuOptions?: UseGetMenuOptions<P>;
 };
@@ -48,6 +49,7 @@ export type EditButtonOptions<P, D> = {
 export const createMenuOptionHook = <P extends object, D extends object>({
   icon,
   name,
+  label,
   global,
   local,
   renderForm,
@@ -64,7 +66,11 @@ export const createMenuOptionHook = <P extends object, D extends object>({
       Object.assign(componentData, values);
       if (onSubmit) onSubmit();
     };
-    const render = (p: ContextMenuFormBodyProps<D>) => renderForm({ ...p, unwrap });
+    const render = (p: ContextMenuFormBodyProps<D>) => renderForm({
+      ...p,
+      unwrap,
+      componentProps: props,
+    });
     const form = contextMenuForm({
       submitValues,
       initialValues: componentData,
@@ -73,6 +79,7 @@ export const createMenuOptionHook = <P extends object, D extends object>({
       {
         icon,
         name,
+        label,
         isActive,
         global,
         local,
@@ -91,7 +98,7 @@ export const createMenuOptionHook = <P extends object, D extends object>({
 const withEditButton = <P extends object, D extends object>(
   options: EditButtonOptions<P, D>,
 ) => flowRight(
-    withPageContext({
+    withMenuOptions({
       useGetMenuOptions: createMenuOptionHook(options),
       name: options.name,
     }),

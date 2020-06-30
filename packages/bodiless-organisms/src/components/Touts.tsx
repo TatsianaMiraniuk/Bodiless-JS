@@ -13,7 +13,7 @@
  */
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { FC, ComponentType } from 'react';
+import React, { FC, ComponentType, HTMLProps } from 'react';
 import { flow } from 'lodash';
 import {
   withDesign,
@@ -24,12 +24,8 @@ import {
   Img,
   H2,
   StylableProps,
+  addProps,
 } from '@bodiless/fclasses';
-import {
-  asBodilessImage,
-  asBodilessLink,
-  asEditable,
-} from '@bodiless/components';
 import { withNode } from '@bodiless/core';
 
 export type ToutComponents = {
@@ -53,9 +49,9 @@ const toutComponentStart:ToutComponents = {
   Link: A,
 };
 
-type Props = DesignableComponentsProps<ToutComponents> & { };
+type Props = DesignableComponentsProps<ToutComponents> & HTMLProps<HTMLElement>;
 
-const ToutBase: FC<Props> = ({ components }) => {
+const ToutBase: FC<Props> = ({ components, ...rest }) => {
   const {
     Wrapper,
     ImageWrapper,
@@ -68,7 +64,7 @@ const ToutBase: FC<Props> = ({ components }) => {
   } = components;
 
   return (
-    <Wrapper>
+    <Wrapper {...rest}>
       <ImageWrapper>
         <ImageLink>
           <Image />
@@ -88,21 +84,23 @@ const ToutClean = flow(
   withNode,
 )(ToutBase);
 
-const asEditableTout = withDesign({
-  Image: asBodilessImage('image'),
-  ImageLink: asBodilessLink('cta'),
-  Title: asEditable('title', 'Tout Title Text'),
-  Link: flow(
-    asBodilessLink('cta'),
-    asEditable('ctaText', 'Tout Button Text'),
-  ),
-  Body: asEditable('body', 'Tout Body Text'),
+/**
+ * Adds data- identifiers to help select tout elements in automated tests.
+ *
+ * @param id The id attribute to apply to the outer wrapper.
+ */
+const asTestableTout = withDesign({
+  Wrapper: addProps({ 'data-tout-element': 'wrapper' }),
+  ImageWrapper: addProps({ 'data-tout-element': 'image-wrapper' }),
+  Image: addProps({ 'data-tout-element': 'image' }),
+  ImageLink: addProps({ 'data-tout-element': 'image-link' }),
+  ContentWrapper: addProps({ 'data-tout-element': 'content-wrapper' }),
+  Title: addProps({ 'data-tout-element': 'title' }),
+  Body: addProps({ 'data-tout-element': 'body' }),
+  Link: addProps({ 'data-tout-element': 'link' }),
 });
-const Tout = asEditableTout(ToutClean);
 
-export default Tout;
 export {
-  Tout,
   ToutClean,
-  asEditableTout,
+  asTestableTout,
 };

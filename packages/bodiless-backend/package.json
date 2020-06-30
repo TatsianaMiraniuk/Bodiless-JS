@@ -1,14 +1,20 @@
 {
   "name": "@bodiless/backend",
-  "version": "0.0.37",
+  "version": "0.0.50",
   "description": "",
   "main": "",
+  "files": [
+    "/bodiless.docs.json",
+    "/src"
+  ],
   "dependencies": {
     "body-parser": "^1.18.3",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "formidable": "^1.2.1",
-    "tmp": "^0.0.33"
+    "rimraf": "^2.6.3",
+    "tmp": "^0.0.33",
+    "uuid": "^3.3.2"
   },
   "publishConfig": {
     "access": "public"
@@ -18,6 +24,8 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@types/supertest": "^2.0.8",
+    "morgan": "^1.9.1",
+    "morgan-body": "^2.4.8",
     "supertest": "^4.0.2"
   }
 }

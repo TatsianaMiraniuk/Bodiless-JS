@@ -67,12 +67,26 @@ if (bodilessDependencies.length < 1) {
 }
 
 // Install local packages.
-const args = `install ${bodilessDependencies.join(' ')}`.split(' ');
+const args = `install --no-package-lock --package-lock-only ${bodilessDependencies.join(' ')}`.split(' ');
 const child = spawn('npm', args, {
   stdio: 'inherit',
+  shell: true,
 });
 
 child.on('close', code => {
-  console.log(`Local packages install exited with code ${code}`);
-  process.exit(code);
+  if (code) {
+    console.log(`Local packages install errored with code ${code}`);
+    process.exit(code);
+  } else {
+    console.log('Updated local package.json');
+  }
+  fs.copySync('../../package-lock.json', './package-lock.json');
+  const child$ = spawn('npm', ['install'], {
+    stdio: 'inherit',
+    shell: true,
+  });
+  child$.on('close', code$ => {
+    console.log(`Local packages install exited with code ${code$}`);
+    process.exit(code$);
+  });
 });

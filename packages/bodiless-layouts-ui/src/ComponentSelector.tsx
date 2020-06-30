@@ -23,8 +23,11 @@ import { ComponentSelector as CleanComponentSelector, ComponentSelectorUI, Compo
 
 // eslint-disable-next-line import/prefer-default-export
 export const ui: ComponentSelectorUI = {
-  MasterWrapper: addClasses('bl-flex bl-max-w-xl-grid-3')(Div),
+  MasterWrapper: addClasses('bl-flex bl-form-wrapper')(Div),
   FlexSection: addClasses('bl-pt-grid-16')(Div),
+  FlowContainerEmpty: addClasses(
+    'bl-border-2 bl-border-dashed bl-text-gray-600',
+  )(Div),
   ItemBoxWrapper: addClasses('bl-p-grid-2')(Div),
   ItemBox: addClasses(
     'bl-bg-grey-200 bl-flex bl-flex-col bl-items-center bl-justify-center bl-p-grid-2 bl-h-full bl-w-full bl-relative bl-overflow-hidden bl-cursor-pointer',

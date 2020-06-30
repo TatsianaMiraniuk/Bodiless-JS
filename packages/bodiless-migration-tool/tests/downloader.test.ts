@@ -11,8 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import Downloader from '../src/downloader';
+/* eslint-enable import/first */
 
 describe('assets download', () => {
   test('external assests are not downloaded', async () => {

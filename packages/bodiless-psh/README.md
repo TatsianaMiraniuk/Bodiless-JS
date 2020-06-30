@@ -1,6 +1,6 @@
 # Bodiless integration with platform.sh
 
-This package provides standard configuration files and helper scripts which
+This package provides standard configuration files and helpehttps://github.com/johnsonandjohnson/Bodiless-JS/issues/65https://github.com/johnsonandjohnson/Bodiless-JS/issues/65r scripts which
 make it easy for a bodiless site to be deployed to platform.sh.
 
 ## Setting up your project
@@ -55,12 +55,14 @@ files for a BodilessJS.  To install or update them:
   ```
   npm run init-psh
   ```
+> When `@bodiless/psh` is installing its' files it will try to merge `static` and `edit` `*.platform.app.yaml` files based on the whitelisted keys from `packages/bodiless-psh/resources/.platform/platform.whitelist.yaml`. Only the keys that are specified in `platform.whitelist.yaml` will be merged. Merging will be performed by using the recursive algorithm to preserve any keys that are not in default `.platform.app.yaml`. Non-whitelisted keys will be ignored, and a warning message will be printed to the console.
+
 4. Commit the added configuration files to your repository.  These include
    ```
+   static.platform.sh
    .platform.app.yaml
    .platform/*
    edit/*
-   docs/*
    ```
 
 ### Step 3. Create platform.sh environment variables.
@@ -124,49 +126,9 @@ Should the variable be available at runtime? [Y|n] Y
 Creating variable env:APP_GIT_USER_EMAIL on the project...
 ```
 
-
-#### Authorization token for NPM private registry
-
-From within your project root, execute `platform variable:create` and follow the prompts as:
-```
-$ platform variable:create
-* Level (--level)
-The level at which to set the variable
-  [project    ] Project-wide
-  [environment] Environment-specific
-> project
-
-* Name (--name)
-The variable name
-> APP_NPM_AUTH
-
-* Value (--value)
-The variable's value
-> {paste the token acquired above here}
-
-JSON (--json)
-Is the value JSON-formatted? [y|N] N
-
-Sensitive (--sensitive)
-Is the value sensitive? [y|N] y
-
-Prefix (--prefix)
-The variable name's prefix
-Default: none
-  [none] No prefix: The variable will be part of $PLATFORM_VARIABLES.
-  [env:] env: The variable will be exposed directly, e.g. as $APP_NPM_AUTH.
-> env:
-
-Visible at build time (--visible-build)
-Should the variable be available at build time? [Y|n] Y
-
-Visible at runtime (--visible-runtime)
-Should the variable be available at runtime? [Y|n] Y
-```
-
-- Verify that the variable was created properly by executing:
+You can verify that the variable was created properly by executing, eg:
   ```
-  platform variable:get env:APP_NPM_AUTH
+  platform variable:get env:APP_GIT_USER_EMAIL
   ```
   You should see something like:
   ```
@@ -174,22 +136,124 @@ Should the variable be available at runtime? [Y|n] Y
   +-----------------+---------------------------+
   | Property        | Value                     |
   +-----------------+---------------------------+
-  | id              | env:APP_NPM_AUTH          |
+  | id              | env:APP_GIT_USER_EMAL     |
   | created_at      | 2019-08-09T06:48:52-04:00 |
   | updated_at      | 2019-08-09T06:48:52-04:00 |
-  | name            | env:APP_NPM_AUTH          |
+  | name            | env:APP_GIT_USER_EMAIL    |
   | attributes      | {  }                      |
   | is_json         | false                     |
-  | is_sensitive    | true                      |
+  | is_sensitive    | false                     |
   | visible_build   | true                      |
   | visible_runtime | true                      |
   | level           | project                   |
   +-----------------+---------------------------+
   ```
 
-### Step 4. Configure the platform.sh Bitbucket integration.
+#### Optional: Configure an NPM Private Registry
 
-##### Use the platform cli
+If you wish to install packages from a private registry, you may do so. The
+packages to be installed must be namespaced. Set the following 3 environment
+variables on p.sh. All variables should be visible at both build and run time:
+- `env:APP_NPM_REGISTRY`: the full path to your registry, eg
+  `//my-artifactory.com/api/npm/my-registry/`.
+- `env:APP_NPM_AUTH`: Ypur NPM authentication token. This should be marked as sensitive.
+  To obtain your token:
+  1. Login to your registry:
+     ```
+     npm login --registry=https://url/of/your/private/registry
+     ```
+     Follow the prompts with the username/password/email of the account you wish
+     to use for p.sh automation.
+  2. Examine your `.npmrc` file (usually located in your home directory). You
+     should see something like
+     ```
+     //url/of/your/privateregistry/:_authToken={token}
+     ```
+  3. Copy the token value to the `env:APP_NPM_AUTH` variable in your p.sh project.
+
+- `env:APP_NPM_NAMESPACE`: The namespace of the packages in your private
+  regsitry, eg `@mynamespace`.
+
+### Step 4. Configure the platform.sh Git Service integration.
+
+Platform.sh provides out-of-the-box integrations with many popular Git service providers.
+We have tested with Bitbucket Server and GitHub.
+
+Note that you must have admin access to the repository in order to configure the integration.
+
+#### GitHub
+
+From your project root, execute `platform integration:add` and follow
+the prompts, as:
+
+```
+$ platform integration:add
+* Integration type (--type)
+Enter a number to choose:
+  [0] bitbucket
+  [1] bitbucket_server
+  [2] github
+  [3] gitlab
+  [4] hipchat
+  [5] webhook
+  [6] health.email
+  [7] health.pagerduty
+  [8] health.slack
+  [9] health.webhook
+> 2
+
+* Token (--token)
+An access token for the integration
+> {your GitHub personal access token}
+
+* Repository (--repository)
+The repository (e.g. 'foo/bar')
+> johnsonandjohnson/Bodiless-JS
+
+Build pull requests (--build-pull-requests)
+Build every pull request as an environment? [Y|n] Y
+
+Build pull requests post-merge (--build-pull-requests-post-merge)
+Build pull requests based on their post-merge state? [y|N] y
+
+Clone data for pull requests (--pull-requests-clone-parent-data)
+Clone the parent environment's data for pull requests? [Y|n] n
+
+Fetch branches (--fetch-branches)
+Fetch all branches from the remote (as inactive environments)? [Y|n] y
+
+Prune branches (--prune-branches)
+Delete branches that do not exist on the remote? [Y|n] y
+
+Warning: adding a 'github' integration will automatically synchronize code from the external Git repository.
+This means it can overwrite all the code in your project.
+
+Are you sure you want to continue? [y/N] y
+Checking webhook configuration on the repository: johnsonandjohnson/Bodiless-JS
+  Creating new webhook
+  Webhook created successfully
+Created integration xxxxxxxx (type: github)
++---------------------------+--------------------------------------------------------------------+
+| Property                  | Value                                                              |
++---------------------------+--------------------------------------------------------------------+
+| id                        | xxxxxxx                                                            |
+| type                      | github                                                             |
+| token                     | ******                                                             |
+| base_url                  |                                                                    |
+| repository                | foo/bar                                                            |
+| fetch_branches            | true                                                               |
+| prune_branches            | true                                                               |
+| build_pull_requests       | true                                                               |
+| build_pull_requests_post_ | true                                                               |
+| merge                     |                                                                    |
+| pull_requests_clone_paren | false                                                              |
+| t_data                    |                                                                    |
+| hook_url                  | https://us-2.platform.sh/api/projects/jvaff4bu65vgm/integrations/4 |
+|                           | 4zqv2kqqfcgq/hook                                                  |
++---------------------------+--------------------------------------------------------------------+
+```
+
+#### Bitbucket Server
 
 From your project root, execute `platform integration:add` and follow
 the prompts, as:
@@ -241,6 +305,18 @@ Are you sure you want to continue? [y/N] y
 
 ##### Verify the integration
 
+##### GitHub
+- Visit the "webhooks" section of your bitbucket repository settings, eg
+  ```
+  https://github.com/project/repo/settings/hooks
+  ```
+  and verify that a webhook to platform.sh has been added. Note you will need admin access
+  to the project in order to view the webhooks.
+- Activate a branch in your project (as described below) and validate that an environment
+  is created and deployed to platform.sh. *Note you must first push the branch to bitbucket*.
+- Issue a PR to your repository and verify that the PR branch is deployed.
+
+##### Bitbucket Server
 - Visit the "webhooks" section of your bitbucket repository settings, eg
   ```
   https://domain/plugins/servlet/webhooks/projects/{project-key}/repos/{repo-name}
@@ -249,35 +325,67 @@ Are you sure you want to continue? [y/N] y
   to the project in order to view the webhooks.
 - Activate a branch in your project (as described below) and validate that an environment
   is created and deployed to platform.sh. *Note you must first push the branch to bitbucket*.
+- Issue a PR to your repository and verify that the PR branch is deployed (note that only
+  the static environment will be build for PR's on Bitbucket).
 
-### Step 5. Configure the Jenkins Git integration.
+### Customizing Hook Implementations
 
-#### Provide an access for Jenkins Service Account to platfrom.sh project
-Open the settings of platform.sh project:
-https://console.platform.sh/webalerts/XXX/settings/access, where XXX is platform.sh project id
+This package includes default implementations of platform.sh
+[build and deploy hooks](https://docs.platform.sh/configuration/app/build.html#hooks) which
+should work for most Bodiless sites.  However, should your site have special needs, you can
+customize by creating a `platform.custom.sh` or `static.platform.custom.sh` script and placing
+it alongside the appropriate `.platform.app.yaml` file (at the root of your repository for the
+static site, or in the `/edit` directory for the edit app).  In this script, you can define for
+each platform.sh hook one of the following functions:
 
-#### Configure bitbucket webhook to Jenkins
-In order to enable integration between bitbucket and newly created repository, webhook should be configured.
-In order to do so, go to "Repository settings" > "Webhooks" > "Create webhook".  pajoh
+- `prepare_{hook} ()` - Run before the default implementation of the hook.
+- `hook ()` - Replaces the default implementation of the hook.
+- `finalize_{hook} ()` - Run after the default implementation of the hook.
 
-#### Create Jenkins Pipeline
-Unless its automated the following Jenkins items should be created manually in Jenkins instance.
-It should have the following pipeline inside
+If you wish to extend the default implementation, you can do so by calling it from your function.
+To do this safely (ie to avoid errors if the default implementation doesn't exist) always use the
+`invoke` helper:
+
+```bash
+prepare_deploy () {
+  invoke default_prepare_deploy
+  # Your custom logic here...
+}
 ```
-@Library('nameof-shared-lib') _
-platformshActivatorPipeline(platformshProjectId: 'XXX', branchNamingConvention: '^changeset/.*$')
-```
-XXX should be replaced with platform.sh project id.
-```^changeset/.*$``` could be changed if you like to have different naming convention for branches which are automatically provisioned to platform.sh
 
 ## Building and Deploying
 
-### Pre-requisites
+### Continuous Integration
+
+If you configured platform.sh to build pull requests, then every PR to your repository will be
+deployed to its own environment. Be aware of the following:
+- It is easy to reach your quota of development environments with this enabled, so use cautiously.
+- Edit environments for pull requests are currently only supported on GitHub -- and pushing changes
+  from the edit environment is not supported even there.
+- On Bitbucket Server, pull requests from *forks* will not automatically rebuild when new commits
+  are added.  This limitation does not apply to GitHub.
+- On both GitHub and Bitbucket, changes pushed to code outside the `/edit` directory will
+  not automatically be deployed to the edit environment.  You must manually update the
+  edit environment as described under [Pushing Changes](#pushing-changes) below.
+- Pull request environments will be automatically deleted when the PR is merged or declined.
+- If you manually delete a PR environment, it will not be recreated when the PR is
+  updated.
+- PR environments are named simply `pr-{pr#}` (eg `pr-123`).  You can easily run platform cli
+  commands against them using the `-e pr-xxx` option.
+- A link to the p.sh environment will be posted to the PR:
+  - **GitHub**: Expand the "Show All Checks" link next to the section on the "Conversations"
+    tab, and click the "details" link next to the platform.sh build.
+  - **Bitbucket Server**: Click the build status icon next to the PR title, and then click the
+    "platform.sh" link.
+
+### Manual Deployments
+
+#### Pre-requisites
 
 - Access to a [platform.sh](https://platform.sh/) project.
 - The [platform.sh cli](https://docs.platform.sh/gettingstarted/cli.html)
 
-### Local setup
+#### Local setup
 
 - Obtain the project key of the project you wish to deploy: see
   [The platform.sh project key](#the-platform.sh-project-key), above.
@@ -286,7 +394,7 @@ XXX should be replaced with platform.sh project id.
   platform project:set-remote {project id}
   ```
 
-### Initial deployment of a new branch
+#### Initial deployment of a new branch
 
 - Ensure you are on the correct branch locally.
 - Push the branch to bitbucket.
@@ -305,7 +413,7 @@ XXX should be replaced with platform.sh project id.
 - You can display (and open) the public URLs for your site by checking out the
   corresponding branch and executing `platform url`.
 
-#### Basic Authentication
+##### Basic Authentication
 
 Note that basic authentication may be configured for your environment by
 default, and this may prevent access via your browser. To verify, use the
@@ -321,9 +429,38 @@ platform help env:http-access
 ```
 to learn more.
 
-### Handling Redirect with Routes
+#### Pushing changes
 
-#### Overview
+Once a new branch is created, changes pushed to Bitbucket will be automatically
+deployed to the static site on platform.sh. You can run `platform activity:log`
+to see the current build status, or visit [console.platform.sh](https://console.platform.sh),
+locate your build, and click "View Logs".
+
+Changes are *not* automatically deployed to an edit environment; you must manually
+trigger an update of the edit environment by executing:
+  ```
+  platform ssh -e <env-id> 'bash platform.sh deploy'
+  ```
+
+  You may omit the "-e <env-id>" if you have the active branch checked out locally.
+
+#### Deleting an environment
+
+The platform.sh environment will be deleted when you remove the corresponding
+branch from bitbucket. *Please delete obsolete branches*.
+
+You can also remove an environment without deleting your branch by checking
+out the branch locally and executing `platform env:delete -y`.
+
+#### Merging to master
+
+When you merge a feature branch to master, the updated master branch will be automatically deployed
+to the static environment on platform.sh.  To deploy changes to the edit environment, you must follow the same process as in [Pushing Changes](#pushing-changes) above.
+
+
+## Handling Redirect with Routes
+
+### Overview
 In HTTP, URL redirecting is a technique to forward one URL to a different URL. It is commonly used for handling cases like URL shortening, preventing broken links when pages removed, pointing multiple domain addresses to a single URL address, etc. It is also critical to preserve page SEO value when there are URL changes.
 
 Redirection can be implemented on a client page with [Refresh Meta Tag](https://en.wikipedia.org/wiki/Meta_refresh) or JavaScript, but the preferred way is to manage redirect rules with server configuration.
@@ -339,7 +476,7 @@ An example of redirect using routes.yaml:
 
 Here, the URL https://www.example.com/ will be redirected to https://my-host.example.com/
 
-#### Whole-route vs Partial redirects
+### Whole-route vs Partial redirects
 Platform.sh offers two different ways to implement redirect rules, **Whole-route redirects** and **Partial redirects**
 
 * Whole-route redirects on host level. A typical use case for this kind of route is adding or removing a www. prefix to domain,
@@ -435,7 +572,7 @@ Platform.sh offers two different ways to implement redirect rules, **Whole-route
       If append_suffix is set to false, "/foo/bar/to/my/path" will be redirected to "/new". Otherwise, "/foo/bar/to/my/path" will be redirects to "/new/to/my/path". append_suffix is ignored if 'prefix' is false or 'regexp' is true.
 
 
-#### HTTP vs HTTPS
+### HTTP vs HTTPS
 
 Platform.sh recommends using HTTPS requests for all sites exclusively. Specifying HTTPS in route.yaml will automatically redirect any requests for an HTTP URL to HTTPS. While specifying only HTTP routes will result in duplicate HTTPS routes being created automatically, allowing the site to be served from both HTTP and HTTPS without redirects.
 
@@ -447,7 +584,7 @@ Although it is not recommended, HTTPS requests can be redirected to HTTP explici
   to: "http://{default}/"
 ```
 
-#### Avoid redirect chains
+### Avoid redirect chains
 
 A redirect chain is a series of redirects between the initial URL and the destination URL. The redirect chain could be built over time of development or due to a combination of redirect between different protocol, host name or trailing slash processing etc. Redirect chain causes page loss authority value in search result. It also increases page load time and decreases the overall quality of site.
 
@@ -459,42 +596,72 @@ In order to avoid redirect chains, pay attention on destination path protocol an
 The trailing slash should be appended to the configure item if platform environment adds trailing slash to url by default.
 see [Platform.sh Documentation Redirects](https://docs.platform.sh/configuration/routes/redirects.html)
 
+### Generate redirect rules for migration sites
 
-### Pushing changes
+BodilessJS [Site Migration Tool](https://github.com/johnsonandjohnson/Bodiless-JS/tree/master/packages/bodiless-migration-tool) package comes with a feature that allows user to export site redirection into file. See [Tools/Migration](/#/Tools/Migration?id=configuration) for configuration.
 
-Once a new branch is created, changes pushed to Bitbucket will be automatically
-deployed to the static site onplatform.sh. You can run `platform activity:log`
-to see the current build status, or visit [console.platform.sh](https://console.platform.sh),
-locate your build, and click "View Logs".
+User can apply these exported redirect rules to routers.yaml before deploying to platform.sh.
 
-Changes are *not* automatically deployed to an edit environment; you must manually
-trigger an update of the edit environment by executing:
-  ```
-  platform ssh -e <env-id> 'bash platform.sh deploy'
-  ```
-  Or, to force a fresh install (same as npm fresh):
-  ```
-  platform ssh -e <env-id> 'bash platform.sh fresh'
-  ```
-  You may omit the "-e <env-id>" if you have the active branch checked out locally.
+```yaml
+"https://{default}/":
+    type: upstream
+    upstream: "static:http"
+    redirects:
+      paths:
+        /image/redirect.png:
+          to: /image/placeholder.png
+          code: 301
+        /page2:
+          to: /page3
+          code: 301
+```
 
-### Deleting an environment
+## Using Fastly CDN
 
-The platform.sh environment will be deleted when you remove the corresponding
-branch from bitbucket. *Please delete obsolete branches*.
+Platform.sh integrates with Fastly via EZ platform for Fastly.  
 
-You can also remove an environment without deleting your branch by checking
-out the branch locally and executing `platform env:delete -y`.
+1. Obtain your Fastly Service ID & Key from Fastly.   
+1. Once Fastly Service ID & Key is obtained, these variables can be set at Master environment.
+    ```
+    platform variable:create -e master --level environment env:HTTPCACHE_PURGE_TYPE --value 'fastly'
+    platform variable:create -e master --level environment env:FASTLY_SERVICE_ID --value 'YOUR_ID_HERE'
+    platform variable:create -e master --level environment env:FASTLY_KEY --value 'YOUR_ID_HERE'
+    ```
+1. Verify or Update your `routes.yaml` to enable caching for your site by setting `enabled: true`
+    ```
+        cache:
+            enabled: true
+            cookies: []
+    ```
+1. Verify or Update your `.platform.app.yaml` expiration time for your files.
+    ```
+    web:
+        locations:
+            '/':
+                expires: 6h  
+    ```
 
-### Merging to master
+Once completed, the master env deployed on Platform.sh should be on Fastly CDN.  You may have to fine tune the expires setting for your static resources and set certain ones (ones identify not to change often such as font files) to longer to leverage browser caching.
 
-When you merge a feature branch to master, the updated master branch will be automatically deployed
-to the static environment on platform.sh.  To deploy changes to the edit environment, you must follow the same process as in [Pushing Changes](#pushing-changes) above.
+Platform.sh References:
+* [Set Fastly Credentials on Platform.sh](https://docs.platform.sh/frameworks/ez/fastly.html#set-credentials-on-platformsh)
+* [HTTP Cache](https://docs.platform.sh/configuration/routes/cache.html)
+* [Router Cache](https://docs.platform.sh/languages/php/tuning.html#ensure-that-the-router-cache-is-properly-configured)
+* [Expires](https://docs.platform.sh/configuration/app/web.html#locations)
+* [How to Guide: How to configure caching for static assets](https://community.platform.sh/t/how-to-configure-caching-for-static-assets/187)
+
+
+If there are issues or you need to troubleshoot, here are some good resources:
+* [Checking Fastly Cache](https://docs.fastly.com/en/guides/checking-cache)
+
+    ``` curl -svo /dev/null -H "Fastly-Debug:1" www.example.com/index.html ```
+* [Purging Fastly Cache](https://docs.fastly.com/api/purge)
+
+    ``` curl -X PURGE www.example.com/index.html ```
 
 ## How to load environment specific html snippets
 
 When you want to inject different html snippets depending on your environment type, you can use Server Side Includes (SSI) mechanism.
-
 ### Activate SSI
 
 * Activate SSI for your route(s) in your routes.yaml file. See: https://docs.platform.sh/configuration/routes/ssi.html

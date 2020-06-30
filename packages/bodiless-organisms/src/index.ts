@@ -11,30 +11,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import Slider from './components/Slider';
+import {
+  asBurgerSubMenu,
+  asEditableBurgerSubMenu,
+  BurgerMenuClean,
+  withBurgerSubmenu,
+} from './components/BurgerMenu';
 
 export {
   SingleAccordion,
   SingleAccordionClean,
   asSingleAccordion,
+  asTestableAccordion,
 } from './components/SingleAccordion';
 
 export {
-  withSubmenu,
+  asEditableMainMenu,
   asEditableMenu,
-  asEditableSubMenu,
+  asEditableMainSubMenu,
   asHorizontalMenu,
   asHorizontalSubMenu,
+  asMainMenu,
+  asMainSubMenu,
   asMenu,
-  asSubMenu,
   MenuLink,
+  withSubmenu,
 } from './components/MainMenu/index';
 
 export {
-  Tout,
   ToutClean,
-  asEditableTout,
+  asTestableTout,
 } from './components/Touts';
 
 export {
@@ -54,4 +60,32 @@ export {
   asToutNoBodyNoTitle,
 } from './components/Touts.tokens';
 
-export { Slider };
+export {
+  FilterByGroupClean,
+  asTestableFilterByGroup,
+  asFilterableByGroup,
+  withFBGSuggestions,
+  useFilterByGroupContext,
+  withTagProps,
+} from './components/FilterByGroup';
+
+export {
+  asBurgerSubMenu,
+  asEditableBurgerSubMenu,
+  BurgerMenuClean,
+  withBurgerSubmenu,
+};
+
+export {
+  useAccordionContext,
+  asAccordionWrapper,
+  asAccodionTitle,
+  asAccordionBody,
+} from './components/Accordion';
+
+export {
+  BCarousel,
+  BAutoCarousel,
+  BCarouselClean,
+  asEditableCarousel,
+} from './components/Carousel';

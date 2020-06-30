@@ -13,15 +13,23 @@
  */
 
 /* eslint-disable no-alert */
-import React, { FC } from 'react';
+import React, {
+  FC, useState, useEffect, useCallback,
+} from 'react';
 import Cookies from 'universal-cookie';
 import {
-  contextMenuForm, getUI, ContextProvider, TMenuOption,
+  contextMenuForm,
+  getUI,
+  PageContextProvider,
+  TMenuOption,
+  useEditContext,
+  useNotify,
 } from '@bodiless/core';
 import { AxiosPromise } from 'axios';
 import BackendClient from './BackendClient';
 import CommitsList from './CommitsList';
-
+import RemoteChanges from './RemoteChanges';
+import { GitClient } from './types';
 
 const backendFilePath = process.env.BODILESS_BACKEND_DATA_FILE_PATH || '';
 const backendStaticPath = process.env.BODILESS_BACKEND_STATIC_PATH || '';
@@ -35,30 +43,22 @@ const backendStaticPath = process.env.BODILESS_BACKEND_STATIC_PATH || '';
  * https://www.gatsbyjs.org/docs/environment-variables/#example.
  */
 const canCommit = (process.env.BODILESS_BACKEND_COMMIT_ENABLED || '0') === '1';
-
-type Client = {
-  commit: (
-    message: string,
-    directories: string[],
-    paths: string[],
-    files: string[],
-    author?: string,
-  ) => AxiosPromise<any>,
-  getLatestCommits: () => AxiosPromise<any>,
-  pull: () => AxiosPromise<any>,
-  reset: () => AxiosPromise<any>,
-};
+const canAlertOnLoad = process.env.BODILESS_ALERT_ON_PAGE_LOAD_ENABLED || 1;
 
 type Props = {
-  client?: Client,
+  client?: GitClient,
 };
 
-const handle = (promise: AxiosPromise<any>) => promise
+const handle = (promise: AxiosPromise<any>, callback?: () => void) => promise
   .then(res => {
     if (res.status === 200) {
       // @TODO: Display the response in a component instead of an alert.
       // eslint-disable-next-line no-undef
-      alert('Operation successful.');
+      if (typeof callback === 'function') {
+        callback();
+      } else {
+        alert('Operation successful.');
+      }
     } else {
       // eslint-disable-next-line no-undef
       alert('An unknown error has occured.');
@@ -75,7 +75,7 @@ const handle = (promise: AxiosPromise<any>) => promise
     }
   });
 
-const formGetCommitsList = (client: Client) => contextMenuForm({
+const formGetCommitsList = (client: GitClient) => contextMenuForm({
   // @todo: handle what happens when user selects a commit from the loaded list.
   submitValues: () => {},
 })(
@@ -93,45 +93,72 @@ const formGetCommitsList = (client: Client) => contextMenuForm({
 // Get the author from the cookie.
 const cookies = new Cookies();
 const author = cookies.get('author');
-const formGitCommit = (client: Client) => contextMenuForm({
-  submitValues: (submitValues: any) => handle(client.commit(submitValues.commitMessage,
-    [backendFilePath, backendStaticPath], [], [], author)),
-})(
-  ({ ui }: any) => {
-    const { ComponentFormTitle, ComponentFormLabel, ComponentFormText } = getUI(ui);
-    return (
-      <>
-        <ComponentFormTitle>Upload Changes</ComponentFormTitle>
-        <ComponentFormLabel htmlFor="commit-txt">
-          Description:
-        </ComponentFormLabel>
-        <ComponentFormText field="commitMessage" id="commit-txt" />
-      </>
+const formGitCommit = (client: GitClient) => contextMenuForm({
+  submitValues: (submitValues: any) => {
+    handle(
+      client.commit(
+        submitValues.commitMessage,
+        [backendFilePath, backendStaticPath],
+        [],
+        [],
+        author,
+      ),
     );
   },
-);
+})(({ ui }: any) => {
+  const { ComponentFormTitle, ComponentFormLabel, ComponentFormText } = getUI(
+    ui,
+  );
+  return (
+    <>
+      <ComponentFormTitle>Upload Changes</ComponentFormTitle>
+      <ComponentFormLabel htmlFor="commit-txt">
+        Description:
+      </ComponentFormLabel>
+      <ComponentFormText field="commitMessage" id="commit-txt" />
+    </>
+  );
+});
 
-// Currently descoping the Pull Changes Button Functionality.
-// Might use it later.
+const formGitPull = (client: GitClient, notifyOfChanges: ChangeNotifier) => contextMenuForm({
+  submitValues: (values : any) => {
+    const { keepOpen } = values;
+    return keepOpen;
+  },
+})(({ ui }: any) => {
+  const { ComponentFormTitle, ComponentFormText } = getUI(ui);
+  return (
+    <>
+      <ComponentFormTitle>Pull Changes</ComponentFormTitle>
+      <ComponentFormText type="hidden" field="keepOpen" initialValue={false} />
+      <ComponentFormText type="hidden" field="mergeMaster" initialValue={false} />
+      <RemoteChanges client={client} notifyOfChanges={notifyOfChanges} />
+    </>
+  );
+});
 
-// const formGitPull = (client: Client) => contextMenuForm({
-//   submitValues: () => handle(client.pull()),
-// })(
-//   ({ ui }: any) => {
-//     const { ComponentFormTitle, ComponentFormLabel } = getUI(ui);
-//     return (
-//       <>
-//         <ComponentFormTitle>Download Changes</ComponentFormTitle>
-//         <ComponentFormLabel htmlFor="pull-txt">
-//           Download remote changes
-//         </ComponentFormLabel>
-//       </>
-//     );
-//   },
-// );
-
-const formGitReset = (client: Client) => contextMenuForm({
-  submitValues: () => handle(client.reset()),
+const formGitReset = (client: GitClient, context: any) => contextMenuForm({
+  submitValues: () => {
+    (async () => {
+      context.showPageOverlay({
+        message: 'Revert is in progress. This may take a minute.',
+        maxTimeoutInSeconds: 10,
+      });
+      try {
+        await client.reset();
+        context.showPageOverlay({
+          message: 'Revert completed.',
+          hasSpinner: false,
+          hasCloseButton: true,
+          onClose: () => {
+            window.location.reload();
+          },
+        });
+      } catch {
+        context.showError();
+      }
+    })();
+  },
 })(
   ({ ui }: any) => {
     const { ComponentFormTitle, ComponentFormLabel } = getUI(ui);
@@ -148,42 +175,95 @@ const formGitReset = (client: Client) => contextMenuForm({
 
 const defaultClient = new BackendClient();
 
-const getMenuOptions = (client: Client = defaultClient): TMenuOption[] => {
+const getMenuOptions = (
+  client: GitClient = defaultClient,
+  context: any,
+  notifyOfChanges: ChangeNotifier,
+): TMenuOption[] => {
   const saveChanges = canCommit ? formGitCommit(client) : undefined;
   return [
     {
       name: 'listCommits',
-      icon: 'list',
+      icon: 'book',
+      label: 'History',
       handler: () => formGetCommitsList(client),
     },
     {
       name: 'savechanges',
       icon: 'cloud_upload',
+      label: 'Push',
       isDisabled: () => !canCommit,
       handler: () => saveChanges,
     },
-    // Currently descoping the Pull Changes Button Functionality.
-    // Might use it later.
-    // {
-    //   name: 'pullchanges',
-    //   icon: 'cloud_download',
-    //   handler: () => formGitPull(client),
-    // },
+    {
+      name: 'Pull',
+      label: 'Pull',
+      icon: 'cloud_download',
+      handler: () => formGitPull(client, notifyOfChanges),
+    },
     {
       name: 'resetchanges',
-      icon: 'first_page',
-      handler: () => formGitReset(client),
+      label: 'Revert',
+      icon: 'undo',
+      isHidden: () => !context.isEdit,
+      handler: () => formGitReset(client, context),
     },
   ];
 };
 
-const GitProvider: FC<Props> = ({ children, client }) => (
-  <ContextProvider
-    getMenuOptions={() => getMenuOptions(client)}
-    name="Git"
-  >
-    {children}
-  </ContextProvider>
-);
+export type ChangeNotifier = () => Promise<void>;
+
+const GitProvider: FC<Props> = ({ children, client = defaultClient }) => {
+  const [notifications, setNotifications] = useState([] as any);
+  const context = useEditContext();
+
+  useNotify(notifications);
+
+  // Quickly [double-]check for changes in the upstream and master branches
+  // and send notifications to the "Alerts" section.
+  // Will perform on page load and after each fetch or push action initiated from UI.
+  const notifyOfChanges: ChangeNotifier = useCallback(
+    async () => {
+      try {
+        const response = await client.getChanges();
+        if (response.status !== 200) {
+          throw new Error('Fetching upstream changes failed');
+        }
+        const updatedRemoteBranches = Object.keys(response.data).filter(branch => (
+          ['upstream', 'production'].includes(branch) && response.data[branch].commits.length
+        ));
+        const isBranchOutdated = Boolean(updatedRemoteBranches.length);
+        if (isBranchOutdated) {
+          setNotifications([
+            {
+              id: 'upstreamChanges',
+              message: 'Your branch is outdated. Please pull remote changes.',
+            },
+          ]);
+        } else if (notifications.length) {
+          setNotifications([]);
+        }
+      } catch {
+        // Fail silently.
+      }
+    },
+    [notifications, setNotifications],
+  );
+
+  useEffect(() => {
+    if (canAlertOnLoad) {
+      notifyOfChanges();
+    }
+  }, []);
+
+  return (
+    <PageContextProvider
+      getMenuOptions={() => getMenuOptions(client, context, notifyOfChanges)}
+      name="Git"
+    >
+      {children}
+    </PageContextProvider>
+  );
+};
 
 export default GitProvider;

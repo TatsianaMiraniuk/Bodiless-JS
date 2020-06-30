@@ -16,13 +16,13 @@
 import { Command, flags } from '@oclif/command';
 import fs from 'fs';
 import path from 'path';
-import { inMonorepo } from './helpers';
 import {
   SiteFlattener,
   SiteFlattenerParams,
   TrailingSlash,
 } from './site-flattener';
 import postBuild from './post-build';
+import page404Handler from './page404-handler';
 
 enum CommandType {
   Flatten = 'flatten',
@@ -62,17 +62,24 @@ class MigrationTool extends Command {
 
   async flatten() {
     const settings = this.getDefaultSettings();
+    const page404Params = page404Handler.getParams(settings);
+    const page404Urls = page404Params.page404Url ? [page404Params.page404Url] : [];
     const flattenerParams: SiteFlattenerParams = {
       websiteUrl: settings.url,
       workDir: this.getWorkDir(),
       gitRepository: this.getGitRepo(),
+      reservedPaths: ['404'],
       scraperParams: {
-        pageUrl: settings.url,
+        pageUrls: [
+          ...page404Urls,
+          settings.url,
+        ],
         maxDepth: settings.crawler.maxDepth,
         maxConcurrency: settings.crawler.maxConcurrency || 1,
         obeyRobotsTxt: settings.crawler.ignoreRobotsTxt !== true,
         javascriptEnabled: true,
       },
+      page404Params,
       steps: {
         setup: false,
         scrape: true,
@@ -81,8 +88,13 @@ class MigrationTool extends Command {
         serve: false,
       },
       trailingSlash: settings.trailingSlash || TrailingSlash.Add,
-      transformers: settings.transformers,
+      transformers: settings.transformers || [],
+      exports: settings.exports || {},
       htmltojsx: true,
+      disableTailwind: settings.disableTailwind === undefined ? true : settings.disableTailwind,
+      allowFallbackHtml: settings.allowFallbackHtml === undefined
+        ? true
+        : (settings.allowFallbackHtml === true),
     };
     const flattener = new SiteFlattener(flattenerParams);
     await flattener.start();
@@ -93,11 +105,7 @@ class MigrationTool extends Command {
   }
 
   private getWorkDir(): string {
-    let workDir = process.cwd();
-    if (inMonorepo()) {
-      workDir = path.join(__dirname, '../../..');
-    }
-    return workDir;
+    return process.cwd();
   }
 
   private getGitRepo(): string {
@@ -109,6 +117,7 @@ class MigrationTool extends Command {
     const defaultSettingsPath = path.resolve(__dirname, '..', 'settings.json');
     const rootSettingsExist = fs.existsSync(rootSettingsPath);
     const settingsPath = rootSettingsExist ? rootSettingsPath : defaultSettingsPath;
+    console.log(`Applying migration settings from ${settingsPath}`);
     return JSON.parse(fs.readFileSync(settingsPath).toString());
   }
 }

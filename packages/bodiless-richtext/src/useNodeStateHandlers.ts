@@ -40,9 +40,6 @@ type TUseNodeStateHandlers = (
   value: Value;
   onChange: TOnChange;
 };
-type MobxState = {
-  [key: string]: any;
-};
 
 const stateContainer = React.createContext<MobxStateContainer>(
   new MobxStateContainer(),
@@ -87,10 +84,10 @@ const useOnChange: TUseOnChange = ({ onChange }) => {
 
 // Create the value prop (gets current editor value from state).
 const useValue: TUseValue = ({ initialValue }) => {
-  const { state } = useStateContainer();
+  const { get: getValue } = useStateContainer();
   const { node } = useNode<Data>();
   const key = (node.path as string[]).join('$');
-  let { [key]: oldValue } = state as MobxState;
+  let oldValue = getValue(key);
   if (!oldValue) {
     oldValue = Value.fromJSON(
       node.data.document ? { document: node.data.document } : initialValue,
@@ -104,7 +101,7 @@ const useValue: TUseValue = ({ initialValue }) => {
   // @see https://github.com/ianstormtaylor/slate/blob/6d8df18f016df75da0d49d6b753cecb333dca078/packages/slate/src/models/value.js#L803
   const jsonValue = oldValue.toJSON(preserveAll);
   if (isEqual(jsonValue.document, node.data.document)) return oldValue;
-  // jsonValue.document = node.data.document;
+  jsonValue.document = node.data.document;
   return Value.fromJSON(jsonValue);
 };
 

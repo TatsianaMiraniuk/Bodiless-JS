@@ -4,7 +4,7 @@
 
 Ensure you have the following installed locally:
 - NodeJS: https://nodejs.org/en/download/ 
-  - We are currently using the LTS version 10.15.0. 
+  - We are currently using the LTS version 12.16.3.
   - We use `npm` as a package manager. If you prefer `yarn` feel free to try it. YMMV.
 
 ## Creating a New Site
@@ -42,5 +42,13 @@ npm run serve
 ```
 
 Visit http://localhost:9000/ in your browser to view the site.
+
+### Handling environment variables with `.env.site`
+As part of the installation process, you may want to configure specific environment variables for the site. You may do so by adding or updating `.env.site` file in the root folder of the site. This file allows us to overwrite env variables defined in `@bodiless` packages and/or add new env variables. Make sure you regenerated env variables after you've changed it by running any of the following:
+
+* `npm run build:env-vars` - To regenerate env variables only.
+* `npm run build` - It will regenerate env vars as part of the `build` script.
+* `npm run start` - It will regenerate env vars as part of the `start` script.
+
 
 > Note: Official Gatsby Stater (installable via `gatsby new`) is coming soon!

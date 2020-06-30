@@ -37,6 +37,7 @@ const useGetMenuOptions = (props: TitleProps) => {
     options.push({
       name: 'Add',
       icon: 'add',
+      label: 'Add',
       handler: asHandler(onAdd),
       global: false,
       local: true,
@@ -46,6 +47,7 @@ const useGetMenuOptions = (props: TitleProps) => {
       options.push({
         name: 'Remove',
         icon: 'delete',
+        label: 'Delete',
         handler: asHandler(onDelete),
         global: false,
         local: true,
@@ -58,9 +60,18 @@ const useGetMenuOptions = (props: TitleProps) => {
 // TODO: Maybe generalize this as an "alterDesign()" method.
 const asEditableList = (List: ComponentType<FinalProps>) => (
   ({ design, ...rest }: FinalProps) => {
-    const { isEdit } = useEditContext();
-    if (!isEdit) return <List design={design} {...rest} />;
     const { Title, ItemMenuOptionsProvider } = (design || {}) as Design<ListDesignableComponents>;
+    const { isEdit } = useEditContext();
+    if (!isEdit) {
+      const newDesign = {
+        ...(design || {}),
+        Title: flow(
+          Title || identity,
+          withoutProps(['onAdd', 'onDelete', 'canDelete']),
+        ),
+      };
+      return <List design={newDesign} {...rest} />;
+    }
     const newDesign = {
       ...(design || {}),
       Title: flow(
