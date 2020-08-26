@@ -15,7 +15,7 @@
 import {
   ComponentType, HTMLProps, MouseEvent, ReactNode,
 } from 'react';
-import { FormApi, FormState } from 'informed';
+import { FormApi, FormState, FieldProps } from 'informed';
 
 export type AllowedComponent = ComponentWithMeta<any>;
 export type RenderList = (options: {
@@ -30,6 +30,7 @@ export type ComponentSelectorProps = {
   onSelect(event: MouseEvent, componentName: string): void;
   closeForm?(): void;
   ui?: ComponentSelectorUI;
+  mandatoryCategories?: string[];
 };
 export type onSelectType = (
   event: MouseEvent,
@@ -65,6 +66,8 @@ export type FinalUI = {
   MasterWrapper: ComponentType<HTMLProps<HTMLDivElement>> | string;
   // A div that can be configured as column or row
   FlexSection: ComponentType<HTMLProps<HTMLDivElement>> | string;
+  // A div that can be configured as column or row and takes all available space
+  FlexSectionFull: ComponentType<HTMLProps<HTMLDivElement>> | string;
   // A div wraps an empty flow container
   FlowContainerEmpty: ComponentType<HTMLProps<HTMLDivElement>> | string;
   // A div that will wrap the entirety of the Accordions and Accordion Checkboxes
@@ -82,7 +85,7 @@ export type FinalUI = {
   // A label that will be displayed by the AccordionCheckbox
   AccordionCheckboxLabel: ComponentType<HTMLProps<HTMLLabelElement>> | string;
   // A input that will be displayed by the Accordion Label
-  AccordionCheckBox: ComponentType<HTMLProps<HTMLInputElement>> | string;
+  AccordionCheckBox: ComponentType<FieldProps<any, any>> | string;
   // A div that will wrap the search bar
   SearchBarWrapper: ComponentType<HTMLProps<HTMLDivElement>> | string;
   // A styled text input
@@ -102,6 +105,8 @@ export type FinalUI = {
   // A div that wraps the ItemBox
   GridListBox: ComponentType<HTMLProps<HTMLDivElement>> | string;
   // A div that wraps the ItemBox Elements
+  GridListBoxWrapper: ComponentType<HTMLProps<HTMLDivElement>> | string;
+  // An additional div that wraps the ItemBox Elements
   GridListBoxInner: ComponentType<HTMLProps<HTMLDivElement>> | string;
   // A span that wraps the title element of a component box
   TitleWrapper: ComponentType<HTMLProps<HTMLSpanElement>> | string;

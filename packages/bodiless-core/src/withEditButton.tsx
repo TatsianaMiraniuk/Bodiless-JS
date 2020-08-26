@@ -12,38 +12,40 @@
  * limitations under the License.
  */
 
-import { ReactNode } from 'react';
 import { flowRight } from 'lodash';
-import { withMenuOptions, withoutProps, UseGetMenuOptions } from './hoc';
+import { withoutProps } from './hoc';
 import { PageEditContextInterface } from './PageEditContext/types';
-import contextMenuForm, {
+import useContextMenuForm, {
   FormBodyProps as ContextMenuFormBodyProps,
 } from './contextMenuForm';
-import { TMenuOptionGetter } from './Types/PageContextProviderTypes';
+import { withMenuOptions } from './PageContextProvider';
+import type { TMenuOptionGetter } from './Types/PageContextProviderTypes';
+import type { EditButtonProps, EditButtonOptions } from './Types/EditButtonTypes';
 
-export type FormBodyProps<P, D> = ContextMenuFormBodyProps<D> & {
-  unwrap?: () => void;
-  componentProps: P;
-};
-export type FormBodyRenderer<P, D> = (p: FormBodyProps<P, D>) => ReactNode;
+export const useEditFormProps = <P extends object, D extends object>({
+  componentData,
+  setComponentData,
+  onSubmit,
+  dataHandler,
+}: P & EditButtonProps<D>) => {
+  const initialValues = componentData;
 
-export type EditButtonProps<D> = {
-  setComponentData: (componentData: D) => void;
-  componentData: D;
-  unwrap?: () => void;
-  isActive?: () => boolean;
-  onSubmit?: () => void;
-};
-
-export type EditButtonOptions<P, D> = {
-  icon: string;
-  name: string;
-  label?: string;
-  global?: boolean;
-  local?: boolean;
-  renderForm: FormBodyRenderer<P, D>;
-  // Allow additional buttons.
-  useGetMenuOptions?: UseGetMenuOptions<P>;
+  const initialValues$ = dataHandler && dataHandler.initialValueHandler
+    ? dataHandler.initialValueHandler(initialValues) : initialValues;
+  const submitValues = (values: D) => {
+    setComponentData(values);
+    Object.assign(componentData, values);
+    // @todo: refactor - replace this workaround fix.
+    Object.assign(initialValues$, dataHandler && dataHandler.initialValueHandler
+      ? dataHandler.initialValueHandler(initialValues) : initialValues);
+    if (onSubmit) onSubmit();
+  };
+  const submitValues$ = dataHandler && dataHandler.submitValueHandler
+    ? flowRight(submitValues, dataHandler.submitValueHandler) : submitValues;
+  return {
+    submitValues: submitValues$,
+    initialValues: initialValues$,
+  };
 };
 
 export const createMenuOptionHook = <P extends object, D extends object>({
@@ -58,23 +60,16 @@ export const createMenuOptionHook = <P extends object, D extends object>({
     props: P & EditButtonProps<D>,
     context: PageEditContextInterface,
   ) => {
-    const {
-      componentData, setComponentData, unwrap, isActive, onSubmit,
-    } = props;
-    const submitValues = (values: D) => {
-      setComponentData(values);
-      Object.assign(componentData, values);
-      if (onSubmit) onSubmit();
-    };
-    const render = (p: ContextMenuFormBodyProps<D>) => renderForm({
+    const { unwrap, isActive } = props;
+    const renderFormBody = (p: ContextMenuFormBodyProps<D>) => renderForm({
       ...p,
       unwrap,
       componentProps: props,
     });
-    const form = contextMenuForm({
-      submitValues,
-      initialValues: componentData,
-    })(render);
+    const form = useContextMenuForm({
+      ...useEditFormProps(props),
+      renderFormBody,
+    });
     const getMenuOptions: TMenuOptionGetter = () => [
       {
         icon,

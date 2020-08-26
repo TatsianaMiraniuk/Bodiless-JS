@@ -3,6 +3,69 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.54](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.53...v0.0.54) (2020-08-24)
+
+
+### Features
+
+* **fclasses:** Allow adding/removing classes conditionally via fclasses ([#440](https://github.com/johnsonandjohnson/bodiless-js/issues/440)) ([d3d522b](https://github.com/johnsonandjohnson/bodiless-js/commit/d3d522b22e88e39a86f7c36fb21cd7b0dfd978da))
+
+
+### BREAKING CHANGES
+
+* **fclasses:** chaining support is removed from addClasses and removeClasses. If your code contains chained addClasses/removeClasses, you need to replace the chaining with flow/flowIf or any other helpers that provides functional composition.
+For example, when you have in your code
+```
+addClasses('classA').removeClasses('classB')
+```
+you need to change it to
+```
+flow(
+  addClasses('classA'),
+  removeClasses('classB'),
+)
+```
+
+
+
+
+
+## [0.0.53](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.52...v0.0.53) (2020-08-13)
+
+
+### Bug Fixes
+
+* **components:** Fix invalid prop warning when toggling to a fragment in preview mode. ([#495](https://github.com/johnsonandjohnson/bodiless-js/issues/495)) ([ad06710](https://github.com/johnsonandjohnson/bodiless-js/commit/ad067100a1b892319a94066bcfe5b6e20c60fb2b))
+
+
+
+
+
+## [0.0.52](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.51...v0.0.52) (2020-07-29)
+
+
+### Bug Fixes
+
+* **test-site:** Change gallery-final header to landscape image ([#452](https://github.com/johnsonandjohnson/bodiless-js/issues/452)) ([d1457d1](https://github.com/johnsonandjohnson/bodiless-js/commit/d1457d15f173cccf3eebd61347c3c2dcf15ac156))
+
+
+### Features
+
+* **documentation:** API Doc for Site builder ([#474](https://github.com/johnsonandjohnson/bodiless-js/issues/474)) ([14e7594](https://github.com/johnsonandjohnson/bodiless-js/commit/14e75948f2856908f24781b64469df6c8810e7c6))
+* **documentation:** Document API documentation standards for JSDoc ([#414](https://github.com/johnsonandjohnson/bodiless-js/issues/414)) ([95af4e2](https://github.com/johnsonandjohnson/bodiless-js/commit/95af4e2f7401e8867466414bd1277c5c9ab67903))
+
+
+
+
+
+## [0.0.51](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.50...v0.0.51) (2020-07-01)
+
+**Note:** Version bump only for package @bodiless/documentation
+
+
+
+
+
 ## [0.0.50](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.49...v0.0.50) (2020-06-12)
 
 

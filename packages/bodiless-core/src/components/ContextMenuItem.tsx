@@ -12,64 +12,61 @@
  * limitations under the License.
  */
 
-import React, { useState, ComponentType } from 'react';
-import ReactTooltip from 'rc-tooltip';
-import { getUI as getFormUI, FormProps } from '../contextMenuForm';
-import { UI, IContextMenuItemProps as IProps } from '../Types/ContextMenuTypes';
+/* eslint-disable no-nested-ternary */
+import React, { useState } from 'react';
+import { observer } from 'mobx-react-lite';
+import { useEditContext } from '../hooks';
+import { useContextMenuContext, useMenuOptionUI } from './ContextMenuContext';
+import type { IContextMenuItemProps as IProps, ContextMenuFormProps } from '../Types/ContextMenuTypes';
 
-const defaultUI = {
-  Icon: 'span',
-  ToolbarButton: 'div',
-  FormWrapper: 'div',
-  ToolbarDivider: 'div',
-  Form: 'form',
-  Tooltip: ReactTooltip,
-};
-
-export const getUI = (ui: UI = {}) => ({
-  ...defaultUI,
-  ...getFormUI(),
-  ...ui,
-});
-
-const ContextMenuItem = ({ option, index, ui }: IProps) => {
-  const [Form, setForm] = useState<ComponentType<FormProps>>();
+const ContextMenuItem = observer((props: IProps) => {
+  const { option, index } = props;
+  const [renderForm, setRenderForm$] = useState<(props:ContextMenuFormProps) => JSX.Element>();
   const [isToolTipShown, setIsToolTipShown] = useState(false);
+  const { isPositionToggled } = useEditContext();
+  const ui = useMenuOptionUI();
   const {
-    ToolbarDivider,
-    Icon,
-    ToolbarButton,
-    FormWrapper,
-    Tooltip,
-  } = getUI(ui);
-  const isActive = option.isActive ? option.isActive() : false;
-  const isDisabled = option.isDisabled ? option.isDisabled() : false;
-  const isHidden = option.isHidden ? option.isHidden() : false;
+    ToolbarDivider, Icon, ToolbarButton,
+    FormWrapper, Tooltip, ToolbarButtonLabel,
+  } = ui;
+  const isActive = option.isActive ? (typeof option.isActive === 'function' ? option.isActive() : option.isActive) : false;
+  const isDisabled = option.isDisabled ? (typeof option.isDisabled === 'function' ? option.isDisabled() : option.isDisabled) : false;
+  const isHidden = option.isHidden ? (typeof option.isHidden === 'function' ? option.isHidden() : option.isHidden) : false;
+  const label = option.label ? (typeof option.label === 'function' ? option.label() : option.label) : '';
+  const icon = option.icon ? (typeof option.icon === 'function' ? option.icon() : option.icon) : '';
+  const useCssRight = isPositionToggled && option.Component;
+
   const isFirst = index === 0;
+  const setRenderForm = useContextMenuContext().setRenderForm || setRenderForm$;
 
   const onToolbarButtonClick = (event: React.MouseEvent<HTMLDivElement>): void => {
     const menuForm = option.handler ? option.handler(event) : undefined;
     if (menuForm) {
       setIsToolTipShown(!isToolTipShown);
-      // We have to pass a function to setForm b/c menuForm is itself a function
-      // (a component) and, when a function is passed to setState, react interprets
+      // We have to pass a function to setRenderForm b/c menuForm is itself a function
+      // (a render prop) and, when a function is passed to setState, react interprets
       // it as a state setter (in order to set state based on previous state)
       // see https://reactjs.org/docs/hooks-reference.html#functional-updates
-      setForm(() => menuForm);
+      setRenderForm(() => menuForm);
     }
   };
 
   // Reset form and tooltip state
   const onFormClose = (): void => {
     setIsToolTipShown(false);
-    setForm(undefined);
+    setRenderForm(undefined);
   };
 
   function getContextMenuForm(): JSX.Element {
-    if (Form) {
+    if (renderForm) {
+      const formProps: ContextMenuFormProps = {
+        closeForm: onFormClose,
+        ui,
+        'aria-label': `Context Menu ${label || option.name} Form`,
+      };
       return (
         <FormWrapper onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
-          <Form closeForm={onFormClose} ui={ui} aria-label={`Context Menu ${option.label || option.name} Form`} />
+          {renderForm(formProps)}
         </FormWrapper>
       );
     }
@@ -90,24 +87,26 @@ const ContextMenuItem = ({ option, index, ui }: IProps) => {
       isDisabled={isDisabled}
       isFirst={isFirst}
       onClick={onToolbarButtonClick}
-      aria-label={option.label || option.name}
+      aria-label={label || option.name}
     >
       <Tooltip
         trigger={['click']}
         overlay={getContextMenuForm()}
         visible={isToolTipShown}
+        destroyTooltipOnHide
+        align={{ offset: [5, 0], useCssRight }}
       >
-        <Icon isActive={isActive || isToolTipShown}>{option.icon}</Icon>
+        <Icon isActive={isActive || isToolTipShown}>{icon}</Icon>
       </Tooltip>
       {
-        (option.label) ? (
-          <div className="bl-text-center bl-text-white">
-            {option.label}
-          </div>
+        (label) ? (
+          <ToolbarButtonLabel>
+            {label}
+          </ToolbarButtonLabel>
         ) : (null)
       }
     </ToolbarButton>
   );
-};
+});
 
 export default ContextMenuItem;

@@ -3,6 +3,52 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.54](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.53...v0.0.54) (2020-08-24)
+
+**Note:** Version bump only for package @bodiless/components
+
+
+
+
+
+## [0.0.53](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.52...v0.0.53) (2020-08-13)
+
+
+### Bug Fixes
+
+* **components:** Fix invalid prop warning when toggling to a fragment in preview mode. ([#495](https://github.com/johnsonandjohnson/bodiless-js/issues/495)) ([ad06710](https://github.com/johnsonandjohnson/bodiless-js/commit/ad067100a1b892319a94066bcfe5b6e20c60fb2b))
+
+
+
+
+
+## [0.0.52](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.51...v0.0.52) (2020-07-29)
+
+
+### Features
+
+* **documentation:** API Doc for Site builder ([#474](https://github.com/johnsonandjohnson/bodiless-js/issues/474)) ([14e7594](https://github.com/johnsonandjohnson/bodiless-js/commit/14e75948f2856908f24781b64469df6c8810e7c6))
+
+
+
+
+
+## [0.0.51](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.50...v0.0.51) (2020-07-01)
+
+
+### Bug Fixes
+
+* **components:** an image cannot be added in a component if a previous attempt was unsuccessful ([#367](https://github.com/johnsonandjohnson/bodiless-js/issues/367)) ([09963e7](https://github.com/johnsonandjohnson/bodiless-js/commit/09963e7897993cf21370938735654a8f03a3828c))
+
+
+### Features
+
+* **components:** remove the # from the link URL input field ([#373](https://github.com/johnsonandjohnson/bodiless-js/issues/373)) ([9ca6caa](https://github.com/johnsonandjohnson/bodiless-js/commit/9ca6caa888c1d69f559a224e7c14f4ceec18978f)), closes [#374](https://github.com/johnsonandjohnson/bodiless-js/issues/374)
+
+
+
+
+
 ## [0.0.50](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.49...v0.0.50) (2020-06-12)
 
 

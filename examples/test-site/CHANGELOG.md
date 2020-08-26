@@ -3,6 +3,83 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.54](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.53...v0.0.54) (2020-08-24)
+
+
+### Features
+
+* **fclasses:** Allow adding/removing classes conditionally via fclasses ([#440](https://github.com/johnsonandjohnson/bodiless-js/issues/440)) ([d3d522b](https://github.com/johnsonandjohnson/bodiless-js/commit/d3d522b22e88e39a86f7c36fb21cd7b0dfd978da))
+* **layouts:** Update the Rich Text Options in the Component Picker ([#497](https://github.com/johnsonandjohnson/bodiless-js/issues/497)) ([28a0771](https://github.com/johnsonandjohnson/bodiless-js/commit/28a0771e3a4fb84bcde24b7894d32be742a98b81))
+* **test-site:** Image component: 'swap' operation is not transfering data between linkable and non-linkable components ([#507](https://github.com/johnsonandjohnson/bodiless-js/issues/507)) ([bbe8302](https://github.com/johnsonandjohnson/bodiless-js/commit/bbe830292aa604e438425fe2dccf41af7d7d2bb9))
+
+
+### BREAKING CHANGES
+
+* **fclasses:** chaining support is removed from addClasses and removeClasses. If your code contains chained addClasses/removeClasses, you need to replace the chaining with flow/flowIf or any other helpers that provides functional composition.
+For example, when you have in your code
+```
+addClasses('classA').removeClasses('classB')
+```
+you need to change it to
+```
+flow(
+  addClasses('classA'),
+  removeClasses('classB'),
+)
+```
+
+
+
+
+
+## [0.0.53](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.52...v0.0.53) (2020-08-13)
+
+
+### Bug Fixes
+
+* **components:** Fix invalid prop warning when toggling to a fragment in preview mode. ([#495](https://github.com/johnsonandjohnson/bodiless-js/issues/495)) ([ad06710](https://github.com/johnsonandjohnson/bodiless-js/commit/ad067100a1b892319a94066bcfe5b6e20c60fb2b))
+
+
+
+
+
+## [0.0.52](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.51...v0.0.52) (2020-07-29)
+
+
+### Bug Fixes
+
+* **test-site:** Add Page padding on example site ([#454](https://github.com/johnsonandjohnson/bodiless-js/issues/454)) ([66ab492](https://github.com/johnsonandjohnson/bodiless-js/commit/66ab492e3c3b4bb560b8474188e953b71b263410))
+* **test-site:** Change gallery-final header to landscape image ([#452](https://github.com/johnsonandjohnson/bodiless-js/issues/452)) ([d1457d1](https://github.com/johnsonandjohnson/bodiless-js/commit/d1457d15f173cccf3eebd61347c3c2dcf15ac156))
+* **test-site:** Editable 404 with flowcontainer ([#457](https://github.com/johnsonandjohnson/bodiless-js/issues/457)) ([51e2239](https://github.com/johnsonandjohnson/bodiless-js/commit/51e223905c0a55e9e752dd9d7dd93ee328ef56b3))
+* **test-site:** Fix contentful link ([#444](https://github.com/johnsonandjohnson/bodiless-js/issues/444)) ([cdd6301](https://github.com/johnsonandjohnson/bodiless-js/commit/cdd6301059864eb25e1fd4324dcee0c9602ebe79))
+* **test-site:** Reusable Logo ([#455](https://github.com/johnsonandjohnson/bodiless-js/issues/455)) ([599603b](https://github.com/johnsonandjohnson/bodiless-js/commit/599603b972640ef96da288d2feecebdd3678bd07))
+
+
+### Features
+
+* **documentation:** API Doc for Site builder ([#474](https://github.com/johnsonandjohnson/bodiless-js/issues/474)) ([14e7594](https://github.com/johnsonandjohnson/bodiless-js/commit/14e75948f2856908f24781b64469df6c8810e7c6))
+
+
+
+
+
+## [0.0.51](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.50...v0.0.51) (2020-07-01)
+
+
+### Bug Fixes
+
+* **test-site:** Component Picker titles/descriptions ([#385](https://github.com/johnsonandjohnson/bodiless-js/issues/385)) ([a74db4f](https://github.com/johnsonandjohnson/bodiless-js/commit/a74db4fffe42c43e7016b8debaa81894b6378fd3))
+* **test-site:** Test site needs Footer rendered with new design api [#288](https://github.com/johnsonandjohnson/bodiless-js/issues/288) ([#378](https://github.com/johnsonandjohnson/bodiless-js/issues/378)) ([e902f48](https://github.com/johnsonandjohnson/bodiless-js/commit/e902f48aeff4fd734064743c38bd41f5ff1c1a27))
+
+
+### Features
+
+* **core, ui:** Notify of Upstream Changes in Edit Environment ([#368](https://github.com/johnsonandjohnson/bodiless-js/issues/368)) ([769d1dc](https://github.com/johnsonandjohnson/bodiless-js/commit/769d1dc1fecbbe2ca892685ff9094b7f0066f4b4))
+
+
+
+
+
 ## [0.0.50](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.49...v0.0.50) (2020-06-12)
 
 

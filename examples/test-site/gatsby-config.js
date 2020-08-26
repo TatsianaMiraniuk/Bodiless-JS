@@ -6,6 +6,8 @@ require('dotenv').config({
   path: `.env.${activeEnv}`,
 });
 
+const SITEURL = process.env.SITE_URL;
+
 // Gatsby plugins list.
 const plugins = [
   {
@@ -19,8 +21,7 @@ const plugins = [
   {
     resolve: 'gatsby-plugin-canonical-urls',
     options: {
-      // Set the siteUrl to the absolute production url i.e. https://example.com
-      siteUrl: '/',
+      siteUrl: SITEURL,
     },
   },
   {
@@ -58,12 +59,10 @@ process.env.ROBOTSTXT_POLICY = JSON.stringify(robotsTxtPolicy);
 
 module.exports = {
   developMiddleware: app => {
-    app.use('/___docs', express.static('doc'));
+    app.use('/___docs', express.static('doc', { fallthrough: false }));
   },
   siteMetadata: {
-    siteUrl: 'https://www.example.com',
-    title: 'BodilessJS',
-    logo: '/images/bodiless_logo.png',
+    siteUrl: SITEURL,
   },
   plugins,
 };

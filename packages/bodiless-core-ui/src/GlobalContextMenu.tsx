@@ -23,14 +23,17 @@ import {
 } from '@bodiless/core';
 import {
   ComponentFormTitle, ComponentFormCloseButton, ComponentFormLabel, ComponentFormText,
-  ComponentFormButton, Icon, Div, Hr, ToolbarButton, ComponentFormUnwrapButton,
+  ComponentFormButton, ToolbarIcon, Div, Hr, ToolbarButton, ComponentFormUnwrapButton,
   ComponentFormError, ComponentFormSubmitButton, ComponentFormList, ComponentFormListItem,
-  ComponentFormDescription,
+  ComponentFormDescription, ComponentFormWarning, ComponentFormLink, ComponentFormFieldWrapper,
+  ComponentFormFieldTitle, ComponentFormCheckBox, ComponentFormRadio, ComponentFormRadioGroup,
+  ComponentFormSelect, ComponentFormOption, ComponentFormTextArea, ContextSubMenu,
+  ToolbarButtonLabel, HorizontalToolbarButton,
 } from '@bodiless/ui';
 import ReactTagsField from './ReactTags';
 
 const Toolbar = flow(
-  addClasses('bl-flex bl-flex-col bl-bg-black bl-rounded bl-z-50 bl-p-grid-2 bl-fixed bl-top-grid-0 bl-left-grid-0 bl-text-white'),
+  addClasses('bl-flex bl-flex-col bl-w-grid-12 bl-bg-black bl-rounded bl-z-50 bl-px-grid-2 bl-py-2 bl-fixed bl-top-grid-0 bl-left-grid-0 bl-text-white'),
   addProps({ role: 'toolbar', 'aria-label': 'Global Context Menu Left', id: 'global-context-menu' }),
 )(Div);
 
@@ -43,7 +46,7 @@ const ToolbarRight = flow(
 export const FormWrapper = addClasses('bl-flex')(Div);
 
 export const ToolbarDivider = addClasses(
-  'bl-bg-grey bl-w-auto bl-my-grid-3 bl-h-px',
+  'bl-bg-grey bl-w-grid-12 bl--ml-grid-2 bl-mb-grid-3 bl-h-px',
 )(Hr);
 
 export const GlobalTooltip: FC<ReactTooltip['props']> = props => {
@@ -76,16 +79,29 @@ const ui: ContextMenuUI = {
   ComponentFormLabel,
   ComponentFormDescription,
   ComponentFormText,
+  ComponentFormTextArea,
+  ComponentFormFieldWrapper,
+  ComponentFormFieldTitle,
+  ComponentFormCheckBox,
+  ComponentFormRadio,
+  ComponentFormRadioGroup,
+  ComponentFormSelect,
+  ComponentFormOption,
   ComponentFormButton,
   ComponentFormCloseButton,
   ComponentFormSubmitButton,
   ComponentFormUnwrapButton,
   ComponentFormError,
+  ComponentFormWarning,
+  ComponentFormLink,
   ComponentFormList,
   ComponentFormListItem,
-  Icon,
+  Icon: ToolbarIcon,
+  ContextSubMenu,
   Toolbar,
   ToolbarButton,
+  HorizontalToolbarButton,
+  ToolbarButtonLabel,
   ToolbarDivider,
   FormWrapper,
   Tooltip: GlobalTooltip,

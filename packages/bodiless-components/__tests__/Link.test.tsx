@@ -67,6 +67,8 @@ describe('link interactions', () => {
 
   it('context form should have link-href input field with cancel and done buttons', () => {
     menuButton.simulate('click');
+    const tooltips = wrapper.find('Tooltip');
+    menuPopup = tooltips.at(1);
     menuForm = menuPopup.find('form');
 
     const inputField = menuForm.find('input#link-href');
@@ -79,7 +81,6 @@ describe('link interactions', () => {
     expect(submitButton).not.toBeUndefined();
     expect(submitButton.prop('type')).toBeUndefined();
   });
-
 
   it('context menu form should close and save content when done is clicked', () => {
     let inputField = menuForm.find('input#link-href');

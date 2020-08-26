@@ -12,18 +12,20 @@
  * limitations under the License.
  */
 
-import React, { ComponentType } from 'react';
+import React, { ComponentType, useMemo, FC } from 'react';
 import { flowRight, pick, flow } from 'lodash';
+import type { Plugin } from 'slate-react';
+import type { SchemaProperties } from 'slate';
+import { observer } from 'mobx-react-lite';
 import {
-  ifEditable,
   useEditContext,
   useContextActivator,
   withNode,
   withMenuOptions,
   withoutProps,
+  ifToggledOn,
+  useUUID,
 } from '@bodiless/core';
-import { BasicEditorProps, Plugin } from 'slate-react';
-import { SchemaProperties } from 'slate';
 import {
   designable,
   H1,
@@ -54,10 +56,6 @@ import {
   getSchema,
   getSelectorButtons,
 } from './RichTextItemGetters';
-import { withId, asMark } from './RichTextItemSetters';
-import {
-  RichTextComponents, RichTextComponent,
-} from './Type';
 import TextSelectorButton from './components/TextSelectorButton';
 import { uiContext, getUI, UI } from './RichTextContext';
 import defaultValue from './default-value';
@@ -75,6 +73,9 @@ import {
   withHeader2Meta,
   withHeader3Meta,
 } from './meta';
+import withDefaults from './withDefaults';
+import { withPreview } from './RichTextPreview';
+import type { RichTextProps } from './Type';
 
 type WithSlateSchemaTypeProps = {
   schema: object,
@@ -103,18 +104,24 @@ const withSlateSchema = <P extends object>(Component: ComponentType<P>) => (
 const withSlateActivator = <P extends object>(Component: ComponentType<P>) => (props: P) => {
   const previousSlateContext = useSlateContext();
   const previousEditorProps = previousSlateContext!.editorProps;
-  const context = useEditContext();
   const { onClick } = useContextActivator();
+
+  // TODO: The following onCHange handler is only necessary if the menu options provided
+  // by this editor depend on the state of the editor. If this is ever the case, we will
+  // need to add logic to prevent the context from refreshing on *every* change, and
+  // only trigger refresh when necxessary.
+  // const context = useEditContext();
   // tslint:disable-next-line: ter-arrow-parens
-  const onChange: BasicEditorProps['onChange'] = change => {
-    if (typeof previousEditorProps.onChange === 'function' && change) {
-      previousEditorProps.onChange(change);
-    }
-    context.refresh();
-  };
+  // const onChange: BasicEditorProps['onChange'] = change => {
+  //   if (typeof previousEditorProps.onChange === 'function' && change) {
+  //     previousEditorProps.onChange(change);
+  //   }
+  //   context.refresh();
+  // };
+
   const editorProps = {
     ...previousEditorProps!,
-    onChange,
+    // onChange,
     onClick,
   };
 
@@ -132,53 +139,49 @@ const withSlateActivator = <P extends object>(Component: ComponentType<P>) => (p
 };
 
 type UseGetMenuOptionsProps = {
-  globalButtons: Function,
+  globalButtons?: Function,
 };
 // This is a call back that goes to withMenuOptions so that we can add button to the global menu
 const richTextUseGetMenuOptions = (props: UseGetMenuOptionsProps) => {
   const slateContext = useSlateContext();
   const { editor } = slateContext!;
-  return () => props.globalButtons(editor);
+  return () => (props.globalButtons ? props.globalButtons(editor) : []);
 };
+
+const ifMenuOptions = ifToggledOn((props: UseGetMenuOptionsProps) => {
+  const context = useEditContext();
+  return context.isEdit && Boolean(props.globalButtons);
+});
+
 type RichTextProviderProps = {
   plugins: Plugin[],
   schema?: SchemaProperties,
-};
+} & UseGetMenuOptionsProps;
 type RichTextProviderType = ComponentType<RichTextProviderProps>;
 const RichTextProvider = flowRight(
   withNode,
   withNodeStateHandlers,
-  // @ts-ignore
   withSlateEditor,
-  ifEditable(withMenuOptions({ useGetMenuOptions: richTextUseGetMenuOptions, name: 'editor' })),
-  withoutProps(['className', 'globalButtons', 'plugins', 'readOnly']),
+  ifMenuOptions(
+    withMenuOptions({ useGetMenuOptions: richTextUseGetMenuOptions, name: 'editor' }),
+    withSlateActivator,
+  ),
+  withoutProps(['className', 'plugins', 'globalButtons', 'readOnly']),
   withSlateSchema,
-  ifEditable(withSlateActivator),
 )(React.Fragment) as RichTextProviderType;
 
-export type RichTextProps<P> = {
-  components: DesignableComponents,
-  ui?: UI,
-  initialValue?: object,
-  nodeKey?: string,
-};
-
 /**
- * ensure the componets have a type (we default to mark) as well as ensuring there is an id
- * @param components which set of component on which we should operate
+ * @private
+ * Observer wrapper around hover menu which hides it when not in edit mode.
  */
-const withDefaults = (components: DesignableComponents) => {
-  const withDefaultType = (Component: ComponentType<any>) => (
-    // eslint-disable-next-line no-prototype-builtins
-    Component.hasOwnProperty('type') ? Component : asMark(Component)
-  );
-  return Object.getOwnPropertyNames(components).reduce(
-    (acc, id) => (
-      { ...acc, [id]: flow(withDefaultType, withId(id))(acc[id]) as RichTextComponent }
-    ),
-    components,
-  ) as RichTextComponents;
+const EditOnlyHoverMenu$: FC<Pick<Required<UI>, 'HoverMenu'>> = ({ HoverMenu, children }) => {
+  const { isEdit } = useEditContext();
+  return isEdit
+    ? <HoverMenu>{children}</HoverMenu>
+    : <></>;
 };
+const EditOnlyHoverMenu = observer(EditOnlyHoverMenu$);
+
 const BasicRichText = <P extends object, D extends object>(props: P & RichTextProps<D>) => {
   const {
     initialValue,
@@ -186,40 +189,40 @@ const BasicRichText = <P extends object, D extends object>(props: P & RichTextPr
     ui,
     ...rest
   } = props;
-  const finalComponents = withDefaults(components);
+  const {
+    finalComponents, plugins, schema, globalButtons,
+  } = useMemo(() => {
+    const finalComponents$ = withDefaults(components);
+    return {
+      finalComponents: finalComponents$,
+      plugins: getPlugins(finalComponents$),
+      schema: getSchema(finalComponents$),
+      globalButtons: getGlobalButtons(finalComponents$),
+    };
+  }, [components]);
   const { HoverMenu } = getUI(ui);
   const finalUI = getUI(ui);
-  const { isEdit } = useEditContext();
-  // eslint-disable-next-line react/no-array-index-key
-  const selectorButtons = getSelectorButtons(finalComponents).map((C, i) => <C key={i} />);
+  const selectorButtons = getSelectorButtons(finalComponents).map(C => <C key={useUUID()} />);
   return (
     <uiContext.Provider value={finalUI}>
       <RichTextProvider
         {...rest}
         initialValue={initialValue || defaultValue}
-        plugins={getPlugins(finalComponents)}
-        globalButtons={getGlobalButtons(finalComponents)}
-        schema={getSchema(finalComponents)}
+        plugins={plugins}
+        globalButtons={globalButtons}
+        schema={schema}
       >
-        {
-          isEdit
-          && (
-          <HoverMenu>
-            {
-              // TODO: Revist but for now it seems like this will not need to
-              // rerender ever so it is ok.
-              // eslint-disable-next-line react/no-array-index-key
-              getHoverButtons(finalComponents).map((C, i) => <C key={i} />)
-            }
-            {
-              selectorButtons.length > 0
-              && (
-                <TextSelectorButton>{ selectorButtons }</TextSelectorButton>
-              )
-            }
-          </HoverMenu>
-          )
-        }
+        <EditOnlyHoverMenu HoverMenu={HoverMenu}>
+          {
+            getHoverButtons(finalComponents).map(C => <C key={useUUID()} />)
+          }
+          {
+            selectorButtons.length > 0
+            && (
+              <TextSelectorButton>{ selectorButtons }</TextSelectorButton>
+            )
+          }
+        </EditOnlyHoverMenu>
         <Content />
       </RichTextProvider>
     </uiContext.Provider>
@@ -272,5 +275,10 @@ const apply = (design: Design<DesignableComponents>) => {
   const finalDesign = pick(lastDesign, Object.getOwnPropertyNames(design));
   return applyDesign(start)(extendDesign(finalDesign)(design));
 };
-const RichText = designable(apply)(BasicRichText);
+
+const RichText = flow(
+  withPreview,
+  designable(apply),
+)(BasicRichText);
+
 export default RichText;

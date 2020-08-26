@@ -3,6 +3,47 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.54](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.53...v0.0.54) (2020-08-24)
+
+
+### Features
+
+* **layouts:** Update the Rich Text Options in the Component Picker ([#497](https://github.com/johnsonandjohnson/bodiless-js/issues/497)) ([28a0771](https://github.com/johnsonandjohnson/bodiless-js/commit/28a0771e3a4fb84bcde24b7894d32be742a98b81))
+
+
+
+
+
+## [0.0.53](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.52...v0.0.53) (2020-08-13)
+
+**Note:** Version bump only for package @bodiless/layouts
+
+
+
+
+
+## [0.0.52](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.51...v0.0.52) (2020-07-29)
+
+
+### Features
+
+* **documentation:** API Doc for Site builder ([#474](https://github.com/johnsonandjohnson/bodiless-js/issues/474)) ([14e7594](https://github.com/johnsonandjohnson/bodiless-js/commit/14e75948f2856908f24781b64469df6c8810e7c6))
+
+
+
+
+
+## [0.0.51](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.50...v0.0.51) (2020-07-01)
+
+
+### Features
+
+* **layout:** component picker open by default ([#393](https://github.com/johnsonandjohnson/bodiless-js/issues/393)) ([fc0513a](https://github.com/johnsonandjohnson/bodiless-js/commit/fc0513ac53b705788ef9eec45b07c7987bbb3074)), closes [#264](https://github.com/johnsonandjohnson/bodiless-js/issues/264)
+
+
+
+
+
 ## [0.0.50](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.49...v0.0.50) (2020-06-12)
 
 

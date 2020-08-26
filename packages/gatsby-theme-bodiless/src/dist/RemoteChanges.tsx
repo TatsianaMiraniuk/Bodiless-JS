@@ -14,10 +14,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useEditContext } from '@bodiless/core';
-import { ComponentFormSpinner } from '@bodiless/ui';
+import { ComponentFormSpinner, ComponentFormWarning } from '@bodiless/ui';
 import { isEmpty } from 'lodash';
 import { useFormApi } from 'informed';
-import type { ChangeNotifier } from './GitProvider';
+import type { ChangeNotifier } from './useGitButtons';
 
 type GitBranchType = {
   branch: string | null,
@@ -81,7 +81,6 @@ enum ChangeState {
 
 const handleBranchResponse = (branch: GitBranchType) => {
   const { commits, files } = branch;
-
   if (isEmpty(commits)) {
     return ChangeState.NoneAvailable;
   }
@@ -107,38 +106,49 @@ type ContentProps = {
 const ChangeContent = ({ status, masterStatus, errorMessage } : ContentProps) => {
   switch (status) {
     case ChangeState.NoneAvailable:
-      return (
-        <>
-          {
-            // eslint-disable-next-line no-nested-ternary
-            masterStatus === ChangeState.CanBePulled
-              ? 'There are changes ready to be pulled. Click check (✓) to initiate.'
-              : masterStatus === ChangeState.CanNotBePulled
-                ? 'There are changes on production which cannot be merged from the UI.'
-                : 'There are no changes to download.'
-          }
-        </>
-      );
+      if (masterStatus === ChangeState.CanBePulled) {
+        return (<>There are master changes available to be pulled. Click check (✓) to initiate.</>);
+      }
+      if (masterStatus === ChangeState.CanNotBePulled) {
+        return (
+          <ComponentFormWarning>
+            There are changes on production which cannot be merged from the UI.
+          </ComponentFormWarning>
+        );
+      }
+      return (<>There are no changes to download.</>);
+
     case ChangeState.CanBePulled:
+      if (masterStatus === ChangeState.CanNotBePulled) {
+        return (
+          <>
+            <div>
+              There are updates available to be pulled. Click check (✓) to
+              initiate.
+            </div>
+            <ComponentFormWarning>
+              There are changes on production which cannot be merged from the UI.
+            </ComponentFormWarning>
+          </>
+        );
+      }
       return (
         <>
-          There are changes ready to be pulled. Click check (✓) to initiate.
-          {
-            masterStatus === ChangeState.CanNotBePulled
-              ? '\nThere are changes on production which cannot be merged from the UI.'
-              : ''
-          }
+          There are updates available to be pulled. Click check (✓) to initiate.
         </>
       );
+
     case ChangeState.CanNotBePulled:
       return (
-        <>Upstream changes are available but cannot be fetched via the UI.</>
+        <ComponentFormWarning>
+          Upstream changes are available but cannot be fetched via the UI.
+        </ComponentFormWarning>
       );
     case ChangeState.Errored:
       return errorMessage ? (
-        <>{errorMessage}</>
+        <ComponentFormWarning>{errorMessage}</ComponentFormWarning>
       ) : (
-        <>An unexpected error has occurred</>
+        <ComponentFormWarning>An unexpected error has occurred</ComponentFormWarning>
       );
     default:
       return <ComponentFormSpinner />;
@@ -257,6 +267,7 @@ const PullChanges = (
           throw new Error(`Error pulling changes, status=${response.status}`);
         }
         setPullStatus({ complete: true });
+        formApi.setValue('refreshWhenDone', true);
       } catch (error) {
         setPullStatus({
           complete: false,
@@ -273,7 +284,7 @@ const PullChanges = (
   const { complete, error } = pullStatus;
   if (error) return <>{error}</>;
   if (complete) {
-    return <>Operation completed.</>;
+    return <>Operation complete, page will refresh.</>;
   }
   return <ComponentFormSpinner />;
 };

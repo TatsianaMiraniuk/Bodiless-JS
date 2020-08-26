@@ -3,6 +3,97 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.54](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.53...v0.0.54) (2020-08-24)
+
+
+### Bug Fixes
+
+* **cli:** npm ENOENT on spawning processes on windows ([#498](https://github.com/johnsonandjohnson/bodiless-js/issues/498)) ([08ccebe](https://github.com/johnsonandjohnson/bodiless-js/commit/08ccebe095cd7f896d894e6a89ee8a5ec1fdf1dc))
+
+
+### Features
+
+* **fclasses:** Allow adding/removing classes conditionally via fclasses ([#440](https://github.com/johnsonandjohnson/bodiless-js/issues/440)) ([d3d522b](https://github.com/johnsonandjohnson/bodiless-js/commit/d3d522b22e88e39a86f7c36fb21cd7b0dfd978da))
+* **layouts:** Update the Rich Text Options in the Component Picker ([#497](https://github.com/johnsonandjohnson/bodiless-js/issues/497)) ([28a0771](https://github.com/johnsonandjohnson/bodiless-js/commit/28a0771e3a4fb84bcde24b7894d32be742a98b81))
+* **test-site:** Image component: 'swap' operation is not transfering data between linkable and non-linkable components ([#507](https://github.com/johnsonandjohnson/bodiless-js/issues/507)) ([bbe8302](https://github.com/johnsonandjohnson/bodiless-js/commit/bbe830292aa604e438425fe2dccf41af7d7d2bb9))
+
+
+### BREAKING CHANGES
+
+* **fclasses:** chaining support is removed from addClasses and removeClasses. If your code contains chained addClasses/removeClasses, you need to replace the chaining with flow/flowIf or any other helpers that provides functional composition.
+For example, when you have in your code
+```
+addClasses('classA').removeClasses('classB')
+```
+you need to change it to
+```
+flow(
+  addClasses('classA'),
+  removeClasses('classB'),
+)
+```
+
+
+
+
+
+## [0.0.53](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.52...v0.0.53) (2020-08-13)
+
+
+### Bug Fixes
+
+* **bodiless-ui:** erroneus area error during gatsby build ([#491](https://github.com/johnsonandjohnson/bodiless-js/issues/491)) ([2dc2a49](https://github.com/johnsonandjohnson/bodiless-js/commit/2dc2a4980cbdaab8a48163072a4946de09001b01))
+* **components:** Fix invalid prop warning when toggling to a fragment in preview mode. ([#495](https://github.com/johnsonandjohnson/bodiless-js/issues/495)) ([ad06710](https://github.com/johnsonandjohnson/bodiless-js/commit/ad067100a1b892319a94066bcfe5b6e20c60fb2b))
+
+
+
+
+
+## [0.0.52](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.51...v0.0.52) (2020-07-29)
+
+
+### Bug Fixes
+
+* **test-site:** Add Page padding on example site ([#454](https://github.com/johnsonandjohnson/bodiless-js/issues/454)) ([66ab492](https://github.com/johnsonandjohnson/bodiless-js/commit/66ab492e3c3b4bb560b8474188e953b71b263410))
+* **test-site:** Change gallery-final header to landscape image ([#452](https://github.com/johnsonandjohnson/bodiless-js/issues/452)) ([d1457d1](https://github.com/johnsonandjohnson/bodiless-js/commit/d1457d15f173cccf3eebd61347c3c2dcf15ac156))
+* **test-site:** Editable 404 with flowcontainer ([#457](https://github.com/johnsonandjohnson/bodiless-js/issues/457)) ([51e2239](https://github.com/johnsonandjohnson/bodiless-js/commit/51e223905c0a55e9e752dd9d7dd93ee328ef56b3))
+* **test-site:** Fix contentful link ([#444](https://github.com/johnsonandjohnson/bodiless-js/issues/444)) ([cdd6301](https://github.com/johnsonandjohnson/bodiless-js/commit/cdd6301059864eb25e1fd4324dcee0c9602ebe79))
+* **test-site:** Reusable Logo ([#455](https://github.com/johnsonandjohnson/bodiless-js/issues/455)) ([599603b](https://github.com/johnsonandjohnson/bodiless-js/commit/599603b972640ef96da288d2feecebdd3678bd07))
+
+
+### Features
+
+* **core-ui:** add a warning element for user warning messages ([f40eb6c](https://github.com/johnsonandjohnson/bodiless-js/commit/f40eb6cd8b7271f90c3895cc623e1a8778cfb9c9)), closes [#416](https://github.com/johnsonandjohnson/bodiless-js/issues/416)
+* **documentation:** API Doc for Site builder ([#474](https://github.com/johnsonandjohnson/bodiless-js/issues/474)) ([14e7594](https://github.com/johnsonandjohnson/bodiless-js/commit/14e75948f2856908f24781b64469df6c8810e7c6))
+* **documentation:** Document API documentation standards for JSDoc ([#414](https://github.com/johnsonandjohnson/bodiless-js/issues/414)) ([95af4e2](https://github.com/johnsonandjohnson/bodiless-js/commit/95af4e2f7401e8867466414bd1277c5c9ab67903))
+* **gatsby-theme-bodiless:** Refresh on pull that has upstream changes ([#395](https://github.com/johnsonandjohnson/bodiless-js/issues/395)) ([0e76057](https://github.com/johnsonandjohnson/bodiless-js/commit/0e76057e714347071086044a766d1218cf70f1dc))
+* **gatsby-theme-bodiless:** Retry on Error When Saving to the Backend ([#419](https://github.com/johnsonandjohnson/bodiless-js/issues/419)) ([931e87c](https://github.com/johnsonandjohnson/bodiless-js/commit/931e87c56fba2b04ee66fb90b7c143dd9c01a2c0))
+
+
+
+
+
+## [0.0.51](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.50...v0.0.51) (2020-07-01)
+
+
+### Bug Fixes
+
+* **components:** an image cannot be added in a component if a previous attempt was unsuccessful ([#367](https://github.com/johnsonandjohnson/bodiless-js/issues/367)) ([09963e7](https://github.com/johnsonandjohnson/bodiless-js/commit/09963e7897993cf21370938735654a8f03a3828c))
+* **migration-tool:** ENOTDIR not a directory error during build ([#386](https://github.com/johnsonandjohnson/bodiless-js/issues/386)) ([144701e](https://github.com/johnsonandjohnson/bodiless-js/commit/144701e5cfd7483d14bc3742f4f04cec31ce2c19))
+* **test-site:** Component Picker titles/descriptions ([#385](https://github.com/johnsonandjohnson/bodiless-js/issues/385)) ([a74db4f](https://github.com/johnsonandjohnson/bodiless-js/commit/a74db4fffe42c43e7016b8debaa81894b6378fd3))
+* **test-site:** Test site needs Footer rendered with new design api [#288](https://github.com/johnsonandjohnson/bodiless-js/issues/288) ([#378](https://github.com/johnsonandjohnson/bodiless-js/issues/378)) ([e902f48](https://github.com/johnsonandjohnson/bodiless-js/commit/e902f48aeff4fd734064743c38bd41f5ff1c1a27))
+
+
+### Features
+
+* **components:** remove the # from the link URL input field ([#373](https://github.com/johnsonandjohnson/bodiless-js/issues/373)) ([9ca6caa](https://github.com/johnsonandjohnson/bodiless-js/commit/9ca6caa888c1d69f559a224e7c14f4ceec18978f)), closes [#374](https://github.com/johnsonandjohnson/bodiless-js/issues/374)
+* **core, ui:** Notify of Upstream Changes in Edit Environment ([#368](https://github.com/johnsonandjohnson/bodiless-js/issues/368)) ([769d1dc](https://github.com/johnsonandjohnson/bodiless-js/commit/769d1dc1fecbbe2ca892685ff9094b7f0066f4b4))
+* **layout:** component picker open by default ([#393](https://github.com/johnsonandjohnson/bodiless-js/issues/393)) ([fc0513a](https://github.com/johnsonandjohnson/bodiless-js/commit/fc0513ac53b705788ef9eec45b07c7987bbb3074)), closes [#264](https://github.com/johnsonandjohnson/bodiless-js/issues/264)
+
+
+
+
+
 ## [0.0.50](https://github.com/johnsonandjohnson/bodiless-js/compare/v0.0.49...v0.0.50) (2020-06-12)
 
 
